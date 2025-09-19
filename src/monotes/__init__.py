@@ -1,9 +1,9 @@
 from fastapi import APIRouter
-from .note import note_router
+from .bff import bff_router
 
 router: APIRouter = APIRouter()
 
-router.include_router(note_router)
+router.include_router(bff_router)
 
 
 def hello() -> None:

@@ -145,14 +145,18 @@
         name = "monotes-package";
         src = ./.;
         buildInputs = [venv];
+        nativeBuildInputs = [pkgs.makeWrapper];
         installPhase = ''
           mkdir -p $out/style
           cp -r ${./style}/* $out/style/
           ${pkgs.tailwindcss_4}/bin/tailwindcss -i ${./style/input.css} -o ./style/output.css --minify
           cp ./style/output.css $out/style/output.css
+
           cp ${./main.py} $out/main.py
           chmod +x $out/main.py
           patchShebangs $out/main.py
+
+          wrapProgram $out/main.py --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [valkey])}
         '';
       };
     in {
@@ -264,6 +268,7 @@
           jq
           uv
           tailwindcss_4
+          valkey
           watchman
           posting
           yazi

@@ -57,11 +57,14 @@ fi
 tmux new-session -d -s $SESSION_NAME -n "💨_Tailwind" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./style/input.css -o ./style/output.css --watch" C-m
 
+tmux new-window -t $SESSION_NAME -n "🔑_Valkey" -c "$REPO_ROOT/data"
+tmux send-keys -t $SESSION_NAME:1 "valkey-server --loglevel verbose" C-m
+
 tmux new-window -t $SESSION_NAME -n "🐍_FastAPI" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:1 "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)/src\" && uvicorn main:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 0 --timeout-graceful-shutdown 1 --reload-delay 0.5" C-m
+tmux send-keys -t $SESSION_NAME:2 "export PYTHONPATH=\"\${PYTHONPATH}:$(pwd)/src\" && uvicorn main:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5" C-m
 
 tmux new-window -t $SESSION_NAME -n "🦁_Brave" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:2 "brave --user-data-dir=/tmp/brave-dev-uvicorn --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 http://0.0.0.0:8000" C-m
+tmux send-keys -t $SESSION_NAME:3 "brave --user-data-dir=/tmp/brave-dev-uvicorn --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 http://0.0.0.0:8000" C-m
 
 echo "Tmux created session ✨'$SESSION_NAME'✨"
 tmux attach-session -t $SESSION_NAME
