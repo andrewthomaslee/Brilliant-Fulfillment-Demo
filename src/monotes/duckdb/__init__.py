@@ -2,6 +2,7 @@ from asyncio import sleep
 import duckdb
 from duckdb import DuckDBPyConnection
 import os
+from typing import Any
 
 
 create_users_table: str = """
@@ -85,10 +86,10 @@ def load_csv_data(
     if not os.path.exists(machines_csv_path):
         raise FileNotFoundError(f"Error: The file '{machines_csv_path}' was not found.")
 
-    tables_result: list = conn.execute(
+    tables_result: list[Any] = conn.execute(
         "SELECT table_name FROM duckdb_tables()"
     ).fetchall()
-    existing_tables = {table[0].lower() for table in tables_result}
+    existing_tables: set[str] = {table[0].lower() for table in tables_result}
 
     if "users" not in existing_tables:
         raise ValueError(
