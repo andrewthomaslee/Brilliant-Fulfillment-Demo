@@ -19,7 +19,6 @@ from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
 import marimo
 from marimo._server.asgi import ASGIAppBuilder
-from pydantic import BaseModel
 
 # My Imports
 from monotes import router
@@ -51,9 +50,7 @@ templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "tem
 
 
 # ----------Auth-----------#
-users: dict[str, str] = {
-    "admin": "password123"
-}  ## TODO: Replace with actual authentication
+users: dict[str, str] = {"admin": "admin"}  ## TODO: Replace with actual authentication
 
 
 def get_current_user(request: Request) -> str:
@@ -65,15 +62,19 @@ def get_current_user(request: Request) -> str:
     return username
 
 
-# ----------Login-Routes-----------#
-
-
+# ----------Auth-Middleware-----------#
 @app.middleware("http")
 async def auth_middleware(
     request: Request,
     call_next: Callable[[Request], Coroutine[None, None, Response]],
 ) -> Response:
-    if request.url.path == "/login":
+    excluded_paths: list[str] = [
+        "/login",
+        "/style/output.css",
+        "/health",
+        "/favicon.ico",
+    ]
+    if any(request.url.path.startswith(path) for path in excluded_paths):
         return await call_next(request)
 
     if "username" not in request.session:
@@ -82,6 +83,7 @@ async def auth_middleware(
     return await call_next(request)
 
 
+# ----------Login-Routes-----------#
 @app.get("/login")
 async def get_login(request: Request) -> _TemplateResponse:
     return templates.TemplateResponse("login.html", {"request": request})
