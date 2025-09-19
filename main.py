@@ -50,24 +50,10 @@ app.mount(
 templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "templates")
 
 
-# ---------------Marimo-Pages---------------#
-server: ASGIAppBuilder = (
-    marimo.create_asgi_app()
-    .with_app(path="/admin/dashboard", root=MARIMO_DIR / "dashboard")
-    .with_app(path="/packer/questionaire", root=MARIMO_DIR / "questionaire")
-)
-
-
 # ----------Auth-----------#
-
 users: dict[str, str] = {
     "admin": "password123"
 }  ## TODO: Replace with actual authentication
-
-
-class LoginForm(BaseModel):
-    username: str
-    password: str
 
 
 def get_current_user(request: Request) -> str:
@@ -101,7 +87,7 @@ async def get_login(request: Request) -> _TemplateResponse:
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-@app.post("/login")
+@app.post("/login", response_model=None)
 async def post_login(
     request: Request, username: str = Form(...), password: str = Form(...)
 ) -> RedirectResponse | _TemplateResponse:
@@ -156,7 +142,14 @@ async def http_exception_handler(
     )
 
 
-# ---------API-Routes---------#
+# ---------------Marimo-Pages---------------#
+server: ASGIAppBuilder = (
+    marimo.create_asgi_app()
+    .with_app(path="/dashboard", root=MARIMO_DIR / "dashboard.py")
+    .with_app(path="/questionaire", root=MARIMO_DIR / "questionaire.py")
+)
+
+# ---------App-Routers-&-Mounts-&-Middleware---------#
 app.include_router(router)
 app.mount("/", server.build())
 app.add_middleware(
