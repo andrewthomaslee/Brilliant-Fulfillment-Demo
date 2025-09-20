@@ -31,6 +31,10 @@ dev = [
     "websockets>=15.0.1",
 ]
 
+[tool.setuptools]
+packages = []
+
+
 [tool.pyrefly]
 project-includes = ["**/*"]
 project-excludes = ["**/*venv/**/*"]
