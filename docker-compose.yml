@@ -4,7 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    volumes:
+      - bff-demo-data:/data
     tty: true
     stdin_open: true
     ports:
       - ${PORTS:-7999}:7999
+
+volumes:
+  bff-demo-data:

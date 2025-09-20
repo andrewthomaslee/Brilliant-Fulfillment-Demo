@@ -13,11 +13,11 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger: Logger = logging.getLogger(__name__)
     BASE_DIR: Path = Path(__file__).parent
+    DATA_DIR: Path = Path(".." / BASE_DIR / "data")
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     # Valkey setup
-    VALKEY_DIR: Path = Path(".." / BASE_DIR / "data")
-    VALKEY_DIR.mkdir(parents=True, exist_ok=True)
-    subprocess.Popen(["valkey-server"], cwd=VALKEY_DIR)
+    subprocess.Popen(["valkey-server"], cwd=DATA_DIR)
     r = valkey.Valkey()
     while True:
         try:

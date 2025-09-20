@@ -29,6 +29,7 @@ logger: Logger = logging.getLogger(__name__)
 # ---------Setup-App---------------#
 # Discover the base directory relative to this file
 BASE_DIR: Path = Path(__file__).parent
+DATA_DIR: Path = Path(".." / BASE_DIR / "data")
 MARIMO_DIR: Path = BASE_DIR / "pages"
 # Create FastAPI app
 app: FastAPI = FastAPI()
