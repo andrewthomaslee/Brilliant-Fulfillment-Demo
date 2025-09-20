@@ -58,20 +58,20 @@
             pyproject-build-systems.overlays.default
             overlay
             (final: prev: {
-              monotes = prev.monotes.overrideAttrs (old: {
+              bff-demo = prev.bff-demo.overrideAttrs (old: {
                 passthru =
                   (old.passthru or {})
                   // {
                     tests = let
-                      virtualenv = final.mkVirtualEnv "monotes-pytest" {
-                        monotes = ["dev"];
+                      virtualenv = final.mkVirtualEnv "bff-demo-pytest" {
+                        bff-demo = ["dev"];
                       };
                     in
                       (old.tests or {})
                       // {
                         pytest = mkDerivation {
-                          name = "${final.monotes.name}-pytest";
-                          inherit (final.monotes) src;
+                          name = "${final.bff-demo.name}-pytest";
+                          inherit (final.bff-demo) src;
                           nativeBuildInputs = [virtualenv];
                           dontConfigure = true;
                           buildPhase = ''
@@ -86,8 +86,8 @@
                           '';
                         };
                         pyrefly = mkDerivation {
-                          name = "${final.monotes.name}-pyrefly";
-                          inherit (final.monotes) src;
+                          name = "${final.bff-demo.name}-pyrefly";
+                          inherit (final.bff-demo) src;
                           nativeBuildInputs = [virtualenv];
                           dontConfigure = true;
                           dontInstall = true;
@@ -99,8 +99,8 @@
                           '';
                         };
                         ruff = mkDerivation {
-                          name = "${final.monotes.name}-ruff";
-                          inherit (final.monotes) src;
+                          name = "${final.bff-demo.name}-ruff";
+                          inherit (final.bff-demo) src;
                           nativeBuildInputs = [virtualenv];
                           dontConfigure = true;
                           buildPhase = ''
@@ -125,7 +125,7 @@
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       pythonSet = pythonSets.${system};
-      venv = pythonSet.mkVirtualEnv "monotes-venv" workspace.deps.default;
+      venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
       # alpine base docker image
       alpine = pkgs.dockerTools.pullImage {
         imageName = "alpine";
@@ -141,33 +141,32 @@
           then "arm64"
           else system;
       };
-      monotes-package = pkgs.stdenv.mkDerivation {
-        name = "monotes-package";
+      bff-demo-package = pkgs.stdenv.mkDerivation {
+        name = "bff-demo-package";
         src = ./.;
         buildInputs = [venv];
-        nativeBuildInputs = [pkgs.makeWrapper];
+        nativeBuildInputs = with pkgs; [makeWrapper tailwindcss_4];
         installPhase = ''
-          mkdir -p $out/style
-          cp -r ${./style}/* $out/style/
-          ${pkgs.tailwindcss_4}/bin/tailwindcss -i ${./style/input.css} -o ./style/output.css --minify
-          cp ./style/output.css $out/style/output.css
+          mkdir -p $out/app
+          cp -r $src/app/* $out/app/
 
-          cp ${./main.py} $out/main.py
-          chmod +x $out/main.py
-          patchShebangs $out/main.py
+          tailwindcss -i $src/app/style/input.css -o $out/app/style/output.css --minify
 
-          wrapProgram $out/main.py --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [valkey])}
+          chmod +x $out/app/main.py
+          patchShebangs $out/app/main.py
+
+          wrapProgram $out/app/main.py --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [valkey])}
         '';
       };
     in {
-      default = monotes-package;
+      default = bff-demo-package;
       container = pkgs.dockerTools.buildLayeredImage {
-        name = "monotes-container";
+        name = "bff-demo-container";
         created = "now";
         fromImage = alpine;
         contents = [pkgs.curl];
         config = {
-          Cmd = ["${monotes-package}/main.py"];
+          Cmd = ["${bff-demo-package}/app/main.py"];
           ExposedPorts = {"7999/tcp" = {};};
           Healthcheck = {
             Test = ["CMD-SHELL" "curl -f http://localhost:7999/health || exit 1"];
@@ -181,7 +180,7 @@
       system: let
         pkgs = nixpkgs.legacyPackages.${system};
         pythonSet = pythonSets.${system};
-        venv = pythonSet.mkVirtualEnv "monotes-venv" workspace.deps.default;
+        venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
         inherit (pkgs.lib) filterAttrs hasSuffix mapAttrsToList genAttrs;
 
         # App discovery and creation
@@ -221,49 +220,11 @@
       pkgs = nixpkgs.legacyPackages.${system};
       python = pkgs.python313;
       pythonSet = pythonSets.${system};
-      editableOverlay = workspace.mkEditablePyprojectOverlay {
-        root = "$REPO_ROOT";
-      };
-      editablePythonSet = pythonSet.overrideScope (
-        lib.composeManyExtensions [
-          editableOverlay
-          (final: prev: {
-            monotes = prev.monotes.overrideAttrs (old: {
-              src = lib.fileset.toSource {
-                root = old.src;
-                fileset = lib.fileset.unions [
-                  (old.src + "/pyproject.toml")
-                  (old.src + "/README.md")
-                  (old.src + "/main.py")
-                  (old.src + "/src/")
-                  (old.src + "/tests/")
-                  (old.src + "/style/")
-                  (old.src + "/scripts/")
-                ];
-              };
-              nativeBuildInputs =
-                old.nativeBuildInputs
-                ++ final.resolveBuildSystem {
-                  editables = [];
-                };
-            });
-          })
-        ]
-      );
-      virtualenvDev = editablePythonSet.mkVirtualEnv "monotes-dev" workspace.deps.all;
-      #------------------------------------------------------------------------------#
-      # tmux.conf file
-      tmuxConf = pkgs.writeText "tmux.conf" ''
-        set -g mouse on
-        set-option -g default-command "${pkgs.bash}/bin/bash -l"
-      '';
-      # wrapper script for tmux
-      wrappedTmux = pkgs.writeShellScriptBin "tmux" ''
-        exec ${pkgs.tmux}/bin/tmux -f ${tmuxConf} "$@"
-      '';
+      venv = pythonSet.mkVirtualEnv "bff-demo-dev-venv" workspace.deps.all;
       # Packages to install in devShells
       devPackages = with pkgs;
         [
+          tmux
           bash
           jq
           uv
@@ -276,8 +237,7 @@
           brave
           firefox
         ]
-        ++ (lib.optionals pkgs.stdenv.isLinux [chromium])
-        ++ [wrappedTmux];
+        ++ (lib.optionals pkgs.stdenv.isLinux [chromium]);
     in {
       # This devShell simply adds Python & uv and undoes the dependency leakage done by Nixpkgs Python infrastructure.
       impure = pkgs.mkShell {
@@ -297,6 +257,7 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
+          export SELL=$(which bash)
           uv sync
           source .venv/bin/activate
         '';
@@ -305,7 +266,7 @@
       default = pkgs.mkShell {
         packages =
           [
-            virtualenvDev
+            venv
           ]
           ++ devPackages;
         env = {
@@ -316,8 +277,9 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
-          export VIRTUAL_ENV=${virtualenvDev}
-          source ${virtualenvDev}/bin/activate
+          export SELL=$(which bash)
+          export VIRTUAL_ENV=${venv}
+          source ${venv}/bin/activate
           source ${./scripts/vscode.sh} # Configure VS Code
         '';
       };
@@ -327,7 +289,7 @@
     checks = forAllSystems (system: let
       pythonSet = pythonSets.${system};
     in {
-      inherit (pythonSet.monotes.passthru.tests) pytest pyrefly ruff;
+      inherit (pythonSet.bff-demo.passthru.tests) pytest pyrefly ruff;
     });
 
     formatter = forAllSystems (

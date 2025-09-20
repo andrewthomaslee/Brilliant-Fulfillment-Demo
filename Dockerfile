@@ -15,10 +15,9 @@ FROM alpine:latest
 RUN apk add --no-cache curl
 EXPOSE 7999
 
-WORKDIR /app
-
+WORKDIR /
 
 COPY --from=builder /tmp/nix-store-closure /nix/store
-COPY --from=builder /tmp/build/result /app
+COPY --from=builder /tmp/build/result /
 HEALTHCHECK --interval=60s --timeout=5s --start-period=20s --retries=5 CMD curl -f http://0.0.0.0:7999/health || exit 1
 ENTRYPOINT ["/app/main.py"]

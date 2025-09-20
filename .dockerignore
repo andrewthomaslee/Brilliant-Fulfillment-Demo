@@ -7,6 +7,7 @@ result
 .direnv
 .devenv
 output.css
-docker
+docker-compose.yml
+Dockerfile
 .ruff_cache
 .vscode
