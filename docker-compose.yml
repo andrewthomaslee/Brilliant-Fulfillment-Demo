@@ -1,6 +1,5 @@
 services:
-  monotes:
-    container_name: monotes-container
+  bff-demo:
     build:
       context: .
       dockerfile: Dockerfile

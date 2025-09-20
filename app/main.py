@@ -4,13 +4,30 @@ if __name__ == "__main__":
     import subprocess
     from pathlib import Path
     import uvicorn
+    import valkey
+    from time import sleep
+    import logging
+    from logging import Logger
 
+    # Logging setup
+    logging.basicConfig(level=logging.INFO)
+    logger: Logger = logging.getLogger(__name__)
     BASE_DIR: Path = Path(__file__).parent
-    # Valkey setup
-    Path(BASE_DIR / "data").mkdir(parents=True, exist_ok=True)
-    subprocess.run(["valkey-server"], cwd=BASE_DIR / "data", check=True)
 
-    # Database setup
+    # Valkey setup
+    VALKEY_DIR: Path = Path(".." / BASE_DIR / "data")
+    VALKEY_DIR.mkdir(parents=True, exist_ok=True)
+    subprocess.Popen(["valkey-server"], cwd=VALKEY_DIR)
+    r = valkey.Valkey()
+    while True:
+        try:
+            if r.ping():
+                logger.info("Valkey is ready.")
+                break
+        except valkey.exceptions.ConnectionError:
+            pass
+        logger.info("Waiting for Valkey to start...")
+        sleep(1)
 
     # FastAPI start
     uvicorn.run(

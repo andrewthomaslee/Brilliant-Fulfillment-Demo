@@ -34,13 +34,15 @@ MARIMO_DIR: Path = BASE_DIR / "pages"
 app: FastAPI = FastAPI()
 app.add_middleware(
     GZipMiddleware,  # pyrefly: ignore
-    minimum_size=500,
-    compresslevel=9,
+    minimum_size=1000,
+    compresslevel=5,
 )
 # Add static files
 app.mount(
     "/style",
-    StaticFiles(directory=BASE_DIR / "style", follow_symlink=True),
+    StaticFiles(
+        directory=BASE_DIR / "style", follow_symlink=True, check_dir=True, html=True
+    ),
     name="style",
 )
 # Create Jinja2 templates
@@ -70,7 +72,7 @@ async def auth_middleware(
         "/login",
         "/style/output.css",
         "/health",
-        "/favicon.ico",
+        "/style/assets/favicon.ico",
     ]
     if any(request.url.path.startswith(path) for path in excluded_paths):
         return await call_next(request)
@@ -145,17 +147,14 @@ async def http_exception_handler(
 # ---------------Marimo-Pages---------------#
 server: ASGIAppBuilder = (
     marimo.create_asgi_app()
-    # pyrefly: ignore  # bad-argument-type
-    .with_app(path="/dashboard", root=MARIMO_DIR / "dashboard.py")
-    # pyrefly: ignore  # bad-argument-type
-    .with_app(path="/questionaire", root=MARIMO_DIR / "questionaire.py")
+    .with_app(path="/dashboard", root=str(MARIMO_DIR / "dashboard.py"))
+    .with_app(path="/questionaire", root=str(MARIMO_DIR / "questionaire.py"))
 )
 
 # ---------App-Routers-&-Mounts-&-Middleware---------#
 # app.include_router(router)
 app.mount("/", server.build())
 app.add_middleware(
-    # pyrefly: ignore  # bad-argument-type
-    SessionMiddleware,
+    SessionMiddleware,  # pyrefly: ignore
     secret_key=os.getenv("SECRET_KEY", "your-secret-key"),
 )

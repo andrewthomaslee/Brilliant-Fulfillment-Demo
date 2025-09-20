@@ -61,7 +61,7 @@ tmux new-window -t $SESSION_NAME -n "🔑_Valkey" -c "$REPO_ROOT/data"
 tmux send-keys -t $SESSION_NAME:1 "valkey-server --loglevel verbose" C-m
 
 tmux new-window -t $SESSION_NAME -n "🐍_FastAPI" -c "$REPO_ROOT/app"
-tmux send-keys -t $SESSION_NAME:2 "uvicorn main:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5" C-m
+tmux send-keys -t $SESSION_NAME:2 "uvicorn app:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5" C-m
 
 tmux new-window -t $SESSION_NAME -n "🦁_Brave" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:3 "brave --user-data-dir=/tmp/brave-dev-uvicorn --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 http://0.0.0.0:8000" C-m

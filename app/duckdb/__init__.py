@@ -1,4 +1,4 @@
-from asyncio import sleep
+from time import sleep
 import duckdb
 from duckdb import DuckDBPyConnection
 import os
@@ -48,21 +48,17 @@ def create_database(database: str) -> None:
         conn.execute(create_logs_time_index)
 
 
-async def get_write_conn(database: str) -> DuckDBPyConnection:
-    # pyrefly: ignore  # async-error
-    conn: DuckDBPyConnection = await duckdb.connect(database)
+def get_write_conn(database: str) -> DuckDBPyConnection:
+    conn: DuckDBPyConnection = duckdb.connect(database)
     return conn
 
 
-async def get_read_conn(database: str) -> DuckDBPyConnection:
+def get_read_conn(database: str) -> DuckDBPyConnection:
     try:
-        # pyrefly: ignore  # async-error
-        conn: DuckDBPyConnection = await duckdb.connect(database, read_only=True)
+        conn: DuckDBPyConnection = duckdb.connect(database, read_only=True)
         return conn
     except duckdb.Error:
-        # pyrefly: ignore  # unused-coroutine
         sleep(2)
-        # pyrefly: ignore  # bad-return
         return get_read_conn(database)
 
 

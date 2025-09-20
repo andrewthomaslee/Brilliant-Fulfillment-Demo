@@ -17,7 +17,8 @@ EXPOSE 7999
 
 WORKDIR /
 
+# Copy Nix Closure
 COPY --from=builder /tmp/nix-store-closure /nix/store
 COPY --from=builder /tmp/build/result /
 HEALTHCHECK --interval=60s --timeout=5s --start-period=20s --retries=5 CMD curl -f http://0.0.0.0:7999/health || exit 1
-ENTRYPOINT ["/app/main.py"]
+ENTRYPOINT ["/app/main"]

@@ -161,7 +161,7 @@
           mv $out/app/main.py $out/app/main
           chmod -w $out/app/main
 
-          wrapProgram $out/app/main --prefix PATH : ${pkgs.lib.makeBinPath [valkey]}
+          wrapProgram $out/app/main --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.valkey]}
         '';
       };
     in {
@@ -170,9 +170,10 @@
         name = "bff-demo-container";
         created = "now";
         fromImage = alpine;
+        maxLayers = 125;
         contents = [pkgs.curl];
         config = {
-          Cmd = ["${bff-demo-package}/app/main.py"];
+          Cmd = ["${bff-demo-package}/app/main"];
           ExposedPorts = {"7999/tcp" = {};};
           Healthcheck = {
             Test = ["CMD-SHELL" "curl -f http://localhost:7999/health || exit 1"];
