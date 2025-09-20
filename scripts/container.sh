@@ -14,7 +14,7 @@ echo "🚀 Building Docker image with Nix..."
 nix build .#container
 
 echo "📥 Loading image into Docker..."
-IMAGE_TAG=$(docker load < result | grep -o 'monotes-container:[^ ]*')
+IMAGE_TAG=$(docker load < result | grep -o 'bff-demo-container:[^ ]*')
 
 
 SESSION_NAME="nixfastapi-container"

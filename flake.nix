@@ -145,7 +145,7 @@
         name = "bff-demo-package";
         src = ./.;
         buildInputs = [venv];
-        nativeBuildInputs = with pkgs; [makeWrapper tailwindcss_4];
+        nativeBuildInputs = with pkgs; [tailwindcss_4 makeWrapper];
         installPhase = ''
           mkdir -p $out/app
           cp -r $src/app/* $out/app/
@@ -154,10 +154,14 @@
           tailwindcss -i $src/app/style/input.css -o $out/app/style/output.css --minify
           chmod -w $out/app/style
 
-          chmod +x $out/app/main.py
-          patchShebangs $out/app/main.py
+          chmod +x $out/app/main.py $out/app/app.py
+          patchShebangs $out/app/app.py
 
-          wrapProgram $out/app/main.py --prefix PATH : ${pkgs.lib.makeBinPath (with pkgs; [valkey])}
+          chmod +w $out/app/main.py
+          mv $out/app/main.py $out/app/main
+          chmod -w $out/app/main
+
+          wrapProgram $out/app/main --prefix PATH : ${pkgs.lib.makeBinPath [valkey]}
         '';
       };
     in {
@@ -223,10 +227,18 @@
       python = pkgs.python313;
       pythonSet = pythonSets.${system};
       venv = pythonSet.mkVirtualEnv "bff-demo-dev-venv" workspace.deps.all;
+      # tmux.conf file
+      tmuxConf = pkgs.writeText "tmux.conf" ''
+        set -g mouse on
+        set-option -g default-command "${pkgs.bash}/bin/bash -l"
+      '';
+      # wrapper script for tmux
+      wrappedTmux = pkgs.writeShellScriptBin "tmux" ''
+        exec ${pkgs.tmux}/bin/tmux -f ${tmuxConf} "$@"
+      '';
       # Packages to install in devShells
       devPackages = with pkgs;
         [
-          tmux
           bash
           jq
           uv
@@ -239,7 +251,8 @@
           brave
           firefox
         ]
-        ++ (lib.optionals pkgs.stdenv.isLinux [chromium]);
+        ++ (lib.optionals pkgs.stdenv.isLinux [chromium])
+        ++ [wrappedTmux];
     in {
       # This devShell simply adds Python & uv and undoes the dependency leakage done by Nixpkgs Python infrastructure.
       impure = pkgs.mkShell {
