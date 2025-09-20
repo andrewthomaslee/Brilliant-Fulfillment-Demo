@@ -150,7 +150,9 @@
           mkdir -p $out/app
           cp -r $src/app/* $out/app/
 
+          chmod +w $out/app/style
           tailwindcss -i $src/app/style/input.css -o $out/app/style/output.css --minify
+          chmod -w $out/app/style
 
           chmod +x $out/app/main.py
           patchShebangs $out/app/main.py
