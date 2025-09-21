@@ -19,16 +19,19 @@ router: APIRouter = APIRouter(
     tags=["admin"],
 )
 
-
 # ------------------Routes-------------------#
-@router.get("/", response_class=HTMLResponse)
-async def read_index(request: Request) -> DatastarResponse:
-    return DatastarResponse(
-        [SSE.patch_elements(div(f"Hello World @ {datetime.now().isoformat()}"))]
-    )
+# @router.get("/", response_class=HTMLResponse)
+# async def read_index(request: Request) -> DatastarResponse:
+#     return DatastarResponse(
+#         [SSE.patch_elements(div(f"Hello World @ {datetime.now().isoformat()}"))]
+#     )
 
 
-@router.post("/submit")
-async def submit_note(request: Request) -> None:
-    signals: dict[str, Any] | None = await read_signals(request)
-    print(signals)
+# @router.post("/submit")
+# async def submit_note(request: Request) -> None:
+#     signals: dict[str, Any] | None = await read_signals(request)
+#     print(signals)
+
+
+# @router.get("/users")
+# async def read_users(request: Request) -> list[Users]:

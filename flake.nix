@@ -154,14 +154,12 @@
           tailwindcss -i $src/app/style/input.css -o $out/app/style/output.css --minify
           chmod -w $out/app/style
 
-          chmod +x $out/app/main.py $out/app/app.py
+          chmod +x $out/app/app.py
           patchShebangs $out/app/app.py
 
-          chmod +w $out/app/main.py
-          mv $out/app/main.py $out/app/main
-          chmod -w $out/app/main
-
-          wrapProgram $out/app/main --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.valkey]}
+          cp $src/main.py $out/main
+          chmod +x $out/main
+          wrapProgram $out/main --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.valkey]}
         '';
       };
     in {
@@ -173,7 +171,7 @@
         maxLayers = 125;
         contents = [pkgs.curl];
         config = {
-          Cmd = ["${bff-demo-package}/app/main"];
+          Cmd = ["${bff-demo-package}/main"];
           ExposedPorts = {"7999/tcp" = {};};
           Healthcheck = {
             Test = ["CMD-SHELL" "curl -f http://localhost:7999/health || exit 1"];

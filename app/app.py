@@ -7,7 +7,7 @@ import logging
 from logging import Logger
 import os
 from dotenv import load_dotenv
-import sys
+from contextlib import asynccontextmanager
 
 # Third Party Imports
 from fastapi import FastAPI, Request, Form, HTTPException, Depends, status, Response
@@ -17,13 +17,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
-import marimo
-from marimo._server.asgi import ASGIAppBuilder
-import duckdb
 
 # My Imports
-from .db import create_database, load_csv_data
 from .routes import router as routes_router
+from .db import init_db, init_kv
+from .config import BASE_DIR
 
 
 # ---------------Logging---------------#
@@ -32,14 +30,19 @@ logger: Logger = logging.getLogger(__name__)
 
 
 # ---------Setup-App---------------#
-# Discover the base directory relative to this file
-BASE_DIR: Path = Path(__file__).parent
-DATA_DIR: Path = Path(BASE_DIR.parent / "data")
-MARIMO_DIR: Path = BASE_DIR / "pages"
 # Load env
 load_dotenv(Path(BASE_DIR.parent / ".env"))
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    init_kv()
+    yield
+
+
 # Create FastAPI app
-app: FastAPI = FastAPI()
+app: FastAPI = FastAPI(lifespan=lifespan)
 app.add_middleware(
     GZipMiddleware,  # pyrefly: ignore
     minimum_size=1000,
@@ -56,26 +59,6 @@ app.mount(
 # Create Jinja2 templates
 templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "templates")
 
-# --------------DuckDB------------#
-DUCK_DB = str(DATA_DIR / "duck.db")
-logger.info(f"Init DuckDB database: {DUCK_DB}")
-create_database(DUCK_DB)
-
-# DuckDB Fake data setup
-FAKE_DATA: str = os.getenv("FAKE_DATA", "false")
-if FAKE_DATA == "true":
-    logger.info("Loading fake data...")
-    try:
-        with duckdb.connect(DUCK_DB) as conn:
-            load_csv_data(
-                conn,
-                str(BASE_DIR.parent / "fake_data" / "users.csv"),
-                str(BASE_DIR.parent / "fake_data" / "machines.csv"),
-            )
-            logger.info("Fake data loaded.")
-    except duckdb.Error as e:
-        logger.debug(f"Error loading fake data: {e}")
-        pass
 
 # ----------Auth-Functions-----------#
 users: dict[str, str] = {"admin": "admin"}  ## TODO: Replace with actual authentication
@@ -155,12 +138,6 @@ async def http_exception_handler(
 app.include_router(routes_router)
 
 
-app.add_middleware(
-    SessionMiddleware,  # pyrefly: ignore
-    secret_key=os.getenv("SECRET_KEY", "your-secret-key"),
-)
-
-
 @app.middleware("http")
 async def auth_middleware(
     request: Request,
@@ -171,6 +148,7 @@ async def auth_middleware(
         "/style/output.css",
         "/health",
         "/style/assets/favicon.ico",
+        "/docs",
     ]
     if any(request.url.path.startswith(path) for path in excluded_paths):
         return await call_next(request)
@@ -179,3 +157,9 @@ async def auth_middleware(
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
     return await call_next(request)
+
+
+app.add_middleware(
+    SessionMiddleware,  # pyrefly: ignore
+    secret_key=os.getenv("SECRET_KEY", "your-secret-key"),
+)
