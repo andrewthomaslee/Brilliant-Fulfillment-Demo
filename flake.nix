@@ -174,6 +174,7 @@
         config = {
           Cmd = ["${bff-demo-package}/main"];
           ExposedPorts = {"7999/tcp" = {};};
+          Volumes = {"/data" = {};};
           Healthcheck = {
             Test = ["CMD-SHELL" "curl -f http://localhost:7999/health || exit 1"];
           };
