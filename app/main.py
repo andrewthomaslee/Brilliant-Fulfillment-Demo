@@ -41,20 +41,7 @@ if __name__ == "__main__":
     DUCK_DB = str(DATA_DIR / "duck.db")
     logger.info(f"Init DuckDB database: {DUCK_DB}")
     create_database(DUCK_DB)
-
-    # DuckDB Fake data setup
-    FAKE_DATA: str = os.getenv("FAKE_DATA", "false")
-    if FAKE_DATA == "true":
-        logger.info("Loading fake data...")
-        from app.db import load_csv_data
-        import duckdb
-
-        with duckdb.connect(DUCK_DB) as conn:
-            load_csv_data(
-                conn,
-                str(BASE_DIR.parent / "fake_data" / "users.csv"),
-                str(BASE_DIR.parent / "fake_data" / "machines.csv"),
-            )
+    logger.info("DuckDB database created.")
 
     # FastAPI start
     uvicorn.run(
