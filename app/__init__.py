@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 # pyrefly: ignore  # import-error
-from .bff import bff_router
+# from .bff import bff_router
 
-router: APIRouter = APIRouter()
+# router: APIRouter = APIRouter()
 
-router.include_router(bff_router)
+# router.include_router(bff_router)
 
 
 def hello() -> None:

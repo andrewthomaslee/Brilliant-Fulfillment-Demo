@@ -247,6 +247,8 @@
           valkey
           watchman
           posting
+          mitmproxy
+          duckdb
           yazi
           lazydocker
           brave

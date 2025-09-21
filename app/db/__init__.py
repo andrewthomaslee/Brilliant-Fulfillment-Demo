@@ -36,16 +36,17 @@ CREATE TABLE IF NOT EXISTS Logs (
 """
 
 create_logs_time_index: str = """
-CREATE INDEX IF NOT EXISTS logs_time_idx ON Logs logged_at;
+CREATE INDEX IF NOT EXISTS logs_time_idx ON Logs ("logged_at");
 """
 
 
 def create_database(database: str) -> None:
-    with duckdb.connect(database) as conn:
-        conn.execute(create_users_table)
-        conn.execute(create_machines_table)
-        conn.execute(create_logs_table)
-        conn.execute(create_logs_time_index)
+    conn: DuckDBPyConnection = duckdb.connect(database)
+    conn.execute(create_users_table)
+    conn.execute(create_machines_table)
+    conn.execute(create_logs_table)
+    conn.execute(create_logs_time_index)
+    conn.close()
 
 
 def get_write_conn(database: str) -> DuckDBPyConnection:

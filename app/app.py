@@ -6,6 +6,8 @@ from pathlib import Path
 import logging
 from logging import Logger
 import os
+from dotenv import load_dotenv
+import sys
 
 # Third Party Imports
 from fastapi import FastAPI, Request, Form, HTTPException, Depends, status, Response
@@ -17,8 +19,10 @@ from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
 import marimo
 from marimo._server.asgi import ASGIAppBuilder
+import duckdb
 
 # My Imports
+from .db import create_database, load_csv_data
 
 
 # ---------------Logging---------------#
@@ -29,8 +33,10 @@ logger: Logger = logging.getLogger(__name__)
 # ---------Setup-App---------------#
 # Discover the base directory relative to this file
 BASE_DIR: Path = Path(__file__).parent
-DATA_DIR: Path = Path(".." / BASE_DIR / "data")
+DATA_DIR: Path = Path(BASE_DIR.parent / "data")
 MARIMO_DIR: Path = BASE_DIR / "pages"
+# Load env
+load_dotenv(Path(BASE_DIR.parent / ".env"))
 # Create FastAPI app
 app: FastAPI = FastAPI()
 app.add_middleware(
@@ -49,6 +55,26 @@ app.mount(
 # Create Jinja2 templates
 templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "templates")
 
+# --------------DuckDB------------#
+DUCK_DB = str(DATA_DIR / "duck.db")
+logger.info(f"Init DuckDB database: {DUCK_DB}")
+create_database(DUCK_DB)
+
+# DuckDB Fake data setup
+FAKE_DATA: str = os.getenv("FAKE_DATA", "false")
+if FAKE_DATA == "true":
+    logger.info("Loading fake data...")
+    try:
+        with duckdb.connect(DUCK_DB) as conn:
+            load_csv_data(
+                conn,
+                str(BASE_DIR.parent / "fake_data" / "users.csv"),
+                str(BASE_DIR.parent / "fake_data" / "machines.csv"),
+            )
+            logger.info("Fake data loaded.")
+    except duckdb.Error as e:
+        logger.debug(f"Error loading fake data: {e}")
+        pass
 
 # ----------Auth-----------#
 users: dict[str, str] = {"admin": "admin"}  ## TODO: Replace with actual authentication

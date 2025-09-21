@@ -11,3 +11,4 @@ docker
 .ruff_cache
 .vscode
 data
+hatchling.dump
