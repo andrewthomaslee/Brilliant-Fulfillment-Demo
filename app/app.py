@@ -23,6 +23,7 @@ import duckdb
 
 # My Imports
 from .db import create_database, load_csv_data
+from .routes import router as routes_router
 
 
 # ---------------Logging---------------#
@@ -76,7 +77,7 @@ if FAKE_DATA == "true":
         logger.debug(f"Error loading fake data: {e}")
         pass
 
-# ----------Auth-----------#
+# ----------Auth-Functions-----------#
 users: dict[str, str] = {"admin": "admin"}  ## TODO: Replace with actual authentication
 
 
@@ -87,27 +88,6 @@ def get_current_user(request: Request) -> str:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
     return username
-
-
-# ----------Auth-Middleware-----------#
-@app.middleware("http")
-async def auth_middleware(
-    request: Request,
-    call_next: Callable[[Request], Coroutine[None, None, Response]],
-) -> Response:
-    excluded_paths: list[str] = [
-        "/login",
-        "/style/output.css",
-        "/health",
-        "/style/assets/favicon.ico",
-    ]
-    if any(request.url.path.startswith(path) for path in excluded_paths):
-        return await call_next(request)
-
-    if "username" not in request.session:
-        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
-
-    return await call_next(request)
 
 
 # ----------Login-Routes-----------#
@@ -171,17 +151,31 @@ async def http_exception_handler(
     )
 
 
-# ---------------Marimo-Pages---------------#
-server: ASGIAppBuilder = (
-    marimo.create_asgi_app()
-    .with_app(path="/dashboard", root=str(MARIMO_DIR / "dashboard.py"))
-    .with_app(path="/questionaire", root=str(MARIMO_DIR / "questionaire.py"))
-)
+# -------Middleware-&-Routers-------#
+app.include_router(routes_router)
 
-# ---------App-Routers-&-Mounts-&-Middleware---------#
-# app.include_router(router)
-app.mount("/", server.build())
+
 app.add_middleware(
     SessionMiddleware,  # pyrefly: ignore
     secret_key=os.getenv("SECRET_KEY", "your-secret-key"),
 )
+
+
+@app.middleware("http")
+async def auth_middleware(
+    request: Request,
+    call_next: Callable[[Request], Coroutine[None, None, Response]],
+) -> Response:
+    excluded_paths: list[str] = [
+        "/login",
+        "/style/output.css",
+        "/health",
+        "/style/assets/favicon.ico",
+    ]
+    if any(request.url.path.startswith(path) for path in excluded_paths):
+        return await call_next(request)
+
+    if "username" not in request.session:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    return await call_next(request)

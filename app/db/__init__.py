@@ -107,11 +107,14 @@ def load_csv_data(
             [users_csv_path],
         )
 
+    except duckdb.Error:
+        pass
+
+    try:
         conn.execute(
             "INSERT INTO Machines SELECT * FROM read_csv_auto(?, header=True)",
             [machines_csv_path],
         )
 
-    except duckdb.Error as e:
-        print(f"An unexpected database error occurred during data loading: {e}")
-        raise e
+    except duckdb.Error:
+        pass

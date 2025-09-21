@@ -15,8 +15,8 @@ from mohtml import div  # pyrefly: ignore
 
 # ------------------Setup-------------------#
 router: APIRouter = APIRouter(
-    prefix="/questionaire",
-    tags=["questionaire"],
+    prefix="/admin",
+    tags=["admin"],
 )
 
 
