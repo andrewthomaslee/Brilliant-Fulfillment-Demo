@@ -24,8 +24,16 @@ def get_session():
 
 
 def init_kv():
+    try:
+        kv = valkey.Valkey()
+        if kv.ping():
+            logger.info("Valkey is ready.")
+            del kv
+            return
+    except valkey.exceptions.ConnectionError:
+        pass
+
     subprocess.Popen(["valkey-server"], cwd=DATA_DIR)
-    kv = valkey.Valkey()
     while True:
         try:
             if kv.ping():

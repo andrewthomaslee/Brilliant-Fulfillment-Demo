@@ -159,6 +159,7 @@
 
           cp $src/main.py $out/main
           chmod +x $out/main
+          patchShebangs $out/main
           wrapProgram $out/main --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.valkey]}
         '';
       };
