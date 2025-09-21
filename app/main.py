@@ -8,6 +8,11 @@ if __name__ == "__main__":
     from time import sleep
     import logging
     from logging import Logger
+    import os
+    from dotenv import load_dotenv
+
+    # My Imports
+    from app.db import create_database
 
     # Logging setup
     logging.basicConfig(level=logging.INFO)
@@ -16,6 +21,8 @@ if __name__ == "__main__":
     DATA_DIR: Path = Path(".." / BASE_DIR / "data")
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+    load_dotenv(Path(BASE_DIR.parent / ".env"))
+
     # Valkey setup
     subprocess.Popen(["valkey-server"], cwd=DATA_DIR)
     r = valkey.Valkey()
@@ -23,11 +30,31 @@ if __name__ == "__main__":
         try:
             if r.ping():
                 logger.info("Valkey is ready.")
+                del r
                 break
         except valkey.exceptions.ConnectionError:
             pass
         logger.info("Waiting for Valkey to start...")
         sleep(1)
+
+    # DuckDB setup
+    DUCK_DB = str(DATA_DIR / "duck.db")
+    logger.info(f"Init DuckDB database: {DUCK_DB}")
+    create_database(DUCK_DB)
+
+    # DuckDB Fake data setup
+    FAKE_DATA: str = os.getenv("FAKE_DATA", "false")
+    if FAKE_DATA == "true":
+        logger.info("Loading fake data...")
+        from app.db import load_csv_data
+        import duckdb
+
+        with duckdb.connect(DUCK_DB) as conn:
+            load_csv_data(
+                conn,
+                str(BASE_DIR.parent / "fake_data" / "users.csv"),
+                str(BASE_DIR.parent / "fake_data" / "machines.csv"),
+            )
 
     # FastAPI start
     uvicorn.run(

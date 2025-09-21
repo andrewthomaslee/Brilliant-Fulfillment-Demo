@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS Logs (
 """
 
 create_logs_time_index: str = """
-CREATE INDEX IF NOT EXISTS logs_time_idx ON Logs ("logged_at");
+CREATE INDEX IF NOT EXISTS logs_time_idx ON Logs logged_at;
 """
 
 
