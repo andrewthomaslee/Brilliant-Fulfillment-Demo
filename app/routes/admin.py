@@ -9,11 +9,9 @@ from fastapi.responses import HTMLResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse  # noqa: F401
 from mohtml import div  # pyrefly: ignore
-from sqlmodel import Session, select
 
 
 # My Imports
-from ..db import get_session
 from ..models.admin import Users, Machines
 
 
@@ -40,7 +38,7 @@ router: APIRouter = APIRouter(
 @router.get("/users", response_model=list[Users])
 async def read_users(
     request: Request,
-    session: Session = Depends(get_session),
+    session:  = Depends(get_session),
 ) -> list[Users]:
     return session.query(Users).all()
 
@@ -49,7 +47,7 @@ async def read_users(
 async def create_user(
     request: Request,
     user: Users,
-    session: Session = Depends(get_session),
+    session:  = Depends(get_session),
 ):
     try:
         new_user = Users(**user.model_dump())
@@ -65,7 +63,7 @@ async def create_user(
 @router.get("/machines", response_model=list[Machines])
 async def read_machines(
     request: Request,
-    session: Session = Depends(get_session),
+    session:  = Depends(get_session),
 ) -> list[Users]:
     return session.query(Machines).all()
 
@@ -74,7 +72,7 @@ async def read_machines(
 async def create_machine(
     request: Request,
     machine: Machines,
-    session: Session = Depends(get_session),
+    session:  = Depends(get_session),
 ):
     try:
         new_machine = Machines(**machine.model_dump())

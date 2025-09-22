@@ -128,24 +128,29 @@
       venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
       # alpine base docker image
       alpine = pkgs.dockerTools.pullImage {
-        imageName = "alpine";
+        imageName = "alpine:3.22.1";
         imageDigest = "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1";
         finalImageName = "alpine";
-        finalImageTag = "latest";
-        sha256 = "sha256-1Af8p6cYQs8sxlowz4BC6lC9eAOpNWYnIhCN7BSDKL0=";
+        finalImageTag = "3.22.1";
+        sha256 =
+          if system == "x86_64-linux"
+          then "sha256-oBoU1GqTLZGH8N3TJKoQCjmpkefCzhHFU3DU5etu7zc="
+          else if system == "aarch64-linux"
+          then "sha256-3jZHiOLGLVzQHalBQ/9Ir+jPqB31Ybvxmv2VHPgwQ+g="
+          else throw "Unsupported system: ${system}";
         os = "linux";
         arch =
           if system == "x86_64-linux"
           then "amd64"
           else if system == "aarch64-linux"
           then "arm64"
-          else system;
+          else throw "Unsupported system: ${system}";
       };
       bff-demo-package = pkgs.stdenv.mkDerivation {
         name = "bff-demo-package";
         src = ./.;
         buildInputs = [venv];
-        nativeBuildInputs = with pkgs; [tailwindcss_4 makeWrapper];
+        nativeBuildInputs = with pkgs; [tailwindcss_4];
         installPhase = ''
           mkdir -p $out/app
           cp -r $src/app/* $out/app/
@@ -160,7 +165,6 @@
           cp $src/main.py $out/main
           chmod +x $out/main
           patchShebangs $out/main
-          wrapProgram $out/main --prefix PATH : ${pkgs.lib.makeBinPath [pkgs.valkey]}
         '';
       };
     in {
@@ -244,7 +248,6 @@
           jq
           uv
           tailwindcss_4
-          valkey
           watchman
           posting
           mitmproxy

@@ -1,15 +1,39 @@
 services:
+
+  valkey:
+    image: valkey/valkey:9.0
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - valkey-data:/data
+    environment:
+      - VALKEY_EXTRA_FLAGS=--save 60 1 --loglevel debug
+
+  mongo:
+    image: mongo:8.0.13
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - mongo-data:/data/db
+
   bff-demo:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    volumes:
-      - bff-demo-data:/data
+    networks:
+      - backend
     tty: true
     stdin_open: true
     ports:
       - ${PORTS:-7999}:7999
 
 volumes:
-  bff-demo-data:
+  mongo-data:
+  valkey-data:
+
+networks:
+  backend:
+    driver: bridge
