@@ -54,7 +54,8 @@ if tmux has-session -t $SESSION_NAME 2>/dev/null; then
     handle_existing_session
 fi
 
-
+docker pull valkey/valkey:9.0
+docker pull mongo:8.0.13
 
 tmux new-session -d -s $SESSION_NAME -n "💨_Tailwind" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./app/style/input.css -o ./app/style/output.css --watch" C-m
@@ -62,11 +63,9 @@ tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./app/style/input.css -o ./app
 tmux new-window -t $SESSION_NAME -n "🪵_Lazydocker" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:1 "lazydocker" C-m
 
-docker pull valkey/valkey:9.0
 tmux new-window -t $SESSION_NAME -n "🔑_Valkey" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:2 "docker run --rm -p 6379:6379 -v ./data/valkey:/data --env VALKEY_EXTRA_FLAGS='--save 60 1 --loglevel debug' --name valkey valkey/valkey:9.0" C-m
 
-docker pull mongo:8.0.13
 tmux new-window -t $SESSION_NAME -n "🥭_MongoDB" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:3 "docker run --rm -p 27017:27017 -v ./data/mongo:/data/db --name mongo mongo:8.0.13 | jq" C-m
 

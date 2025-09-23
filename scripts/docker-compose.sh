@@ -54,6 +54,9 @@ if tmux has-session -t $SESSION_NAME 2>/dev/null; then
     handle_existing_session
 fi
 
+docker pull valkey/valkey:9.0
+docker pull mongo:8.0.13
+
 tmux new-session -d -s $SESSION_NAME -n "🐋_Compose" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:0 "docker compose up --build" C-m
 
