@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    systems.url = "github:nix-systems/default";
 
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -29,7 +28,6 @@
     uv2nix,
     pyproject-nix,
     pyproject-build-systems,
-    systems,
     ...
   }: let
     inherit (nixpkgs) lib;
