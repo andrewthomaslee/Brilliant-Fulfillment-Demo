@@ -9,6 +9,7 @@ from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse  # noqa: F401
 from mohtml import div  # pyrefly: ignore
 from beanie.operators import Set
+from pydantic import ValidationError
 
 # My Imports
 from ..models.admin import User, UserRequest
@@ -36,8 +37,13 @@ router: APIRouter = APIRouter(
 
 @router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user_request: UserRequest) -> User:
-    user = User(**user_request.model_dump())
-    await user.create()
+    try:
+        user = User(**user_request.model_dump())
+        await user.create()
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request"
+        )
     return user
 
 
@@ -49,22 +55,37 @@ async def get_users() -> list[User]:
 
 @router.get("/{user_id}", response_model=User)
 async def get_user(user_id: str) -> User:
-    user: User = valid_user(await User.get(user_id))
+    try:
+        user: User = valid_user(await User.get(user_id))
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
 @router.put("/{user_id}", response_model=User, status_code=status.HTTP_202_ACCEPTED)
 async def update_user(user_id: str, user_request: UserRequest) -> User:
-    user: User = valid_user(await User.get(user_id))
-    await user.update(Set(user_request.model_dump(exclude_unset=True)))
-    user = valid_user(await User.get(user_id))
+    try:
+        user: User = valid_user(await User.get(user_id))
+        await user.update(Set(user_request.model_dump(exclude_unset=True)))
+        user = valid_user(await User.get(user_id))
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_202_ACCEPTED)
 async def delete_user(user_id: str) -> str:
-    user: User = valid_user(await User.get(user_id))
-    await user.delete()
+    try:
+        user: User = valid_user(await User.get(user_id))
+        await user.delete()
+    except ValidationError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return f"User {user_id} deleted"
 
 

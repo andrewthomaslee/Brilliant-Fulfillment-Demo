@@ -35,7 +35,7 @@
     inherit (nixpkgs) lib;
 
     # Create attrset for each system
-    forAllSystems = lib.genAttrs (import systems);
+    forAllSystems = lib.genAttrs ["x86_64-linux" "aarch64-linux"];
 
     # Workspace and package setup
     workspace = uv2nix.lib.workspace.loadWorkspace {workspaceRoot = ./.;};
@@ -257,12 +257,15 @@
           duckdb
           yazi
           valkey
-          mongodb-compass
           lazydocker
           brave
           firefox
+          chromium
+          docker
+          docker-compose
+          docker-buildx
         ]
-        ++ (lib.optionals pkgs.stdenv.isLinux [chromium docker docker-compose docker-buildx])
+        ++ (lib.optionals (system != "aarch64-linux") [mongodb-compass])
         ++ [wrappedTmux];
     in {
       # This devShell simply adds Python & uv and undoes the dependency leakage done by Nixpkgs Python infrastructure.
