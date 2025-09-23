@@ -1,25 +1,35 @@
-from uuid import uuid4
-from datetime import datetime
-from pydantic import BaseModel, Field
+from datetime import datetime, timezone
 
 
-class Users(BaseModel):
-    user_id: str = Field(default_factory=lambda: str(uuid4()))
-    create_time: datetime = Field(default_factory=datetime.now)
+from pydantic import BaseModel
+from beanie import Document
+
+
+class User(Document):
+    create_at: datetime = datetime.now(timezone.utc)
+    admin: bool = False
     name: str
-    admin: bool
     password: str
 
-
-class Machines(BaseModel):
-    machine_id: str = Field(default_factory=lambda: str(uuid4()))
-    created_time: datetime = Field(default_factory=datetime.now)
-    hostname: str
-    condition: int
-    special_note: str
+    class Settings:
+        name = "users"
 
 
-class Logs(BaseModel):
-    created_time: datetime = Field(default_factory=datetime.now)
-    user_id: str
-    machine_id: str
+class UserRequest(BaseModel):
+    admin: bool | None = None
+    name: str | None = None
+    password: str | None = None
+
+
+# class Machines(BaseModel):
+#     machine_id: str = Field(default_factory=lambda: str(uuid4()))
+#     created_time: datetime = Field(default_factory=datetime.now)
+#     hostname: str
+#     condition: int
+#     special_note: str
+
+
+# class Logs(BaseModel):
+#     created_time: datetime = Field(default_factory=datetime.now)
+#     user_id: str
+#     machine_id: str

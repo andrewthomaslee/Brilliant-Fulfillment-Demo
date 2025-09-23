@@ -20,7 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 # My Imports
 from .routes import router as routes_router
-
+from .db import init_db
 from .config import BASE_DIR
 
 
@@ -34,8 +34,14 @@ logger: Logger = logging.getLogger(__name__)
 load_dotenv(Path(BASE_DIR.parent / ".env"))
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
 # Create FastAPI app
-app: FastAPI = FastAPI()
+app: FastAPI = FastAPI(lifespan=lifespan)
 app.add_middleware(
     GZipMiddleware,  # pyrefly: ignore
     minimum_size=1000,

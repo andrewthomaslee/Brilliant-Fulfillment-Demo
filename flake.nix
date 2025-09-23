@@ -228,7 +228,10 @@
     );
 
     devShells = forAllSystems (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
       python = pkgs.python313;
       pythonSet = pythonSets.${system};
       venv = pythonSet.mkVirtualEnv "bff-demo-dev-venv" workspace.deps.all;
@@ -253,11 +256,13 @@
           mitmproxy
           duckdb
           yazi
+          valkey
+          mongodb-compass
           lazydocker
           brave
           firefox
         ]
-        ++ (lib.optionals pkgs.stdenv.isLinux [chromium])
+        ++ (lib.optionals pkgs.stdenv.isLinux [chromium docker docker-compose docker-buildx])
         ++ [wrappedTmux];
     in {
       # This devShell simply adds Python & uv and undoes the dependency leakage done by Nixpkgs Python infrastructure.
@@ -278,6 +283,7 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
+          export COMPOSE_BAKE=true
           export SELL=$(which bash)
           uv sync
           source .venv/bin/activate
@@ -298,6 +304,7 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
+          export COMPOSE_BAKE=true
           export SELL=$(which bash)
           export VIRTUAL_ENV=${venv}
           source ${venv}/bin/activate

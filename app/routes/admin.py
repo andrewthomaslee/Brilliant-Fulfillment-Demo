@@ -1,5 +1,4 @@
 # Standard Imports
-from _hashlib import new
 from typing import Any
 from datetime import datetime
 
@@ -9,10 +8,10 @@ from fastapi.responses import HTMLResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse  # noqa: F401
 from mohtml import div  # pyrefly: ignore
-
+from beanie.operators import Set
 
 # My Imports
-from ..models.admin import Users, Machines
+from ..models.admin import User, UserRequest
 
 
 # ------------------Setup-------------------#
@@ -35,51 +34,43 @@ router: APIRouter = APIRouter(
 #     print(signals)
 
 
-@router.get("/users", response_model=list[Users])
-async def read_users(
-    request: Request,
-    session:  = Depends(get_session),
-) -> list[Users]:
-    return session.query(Users).all()
+@router.post("/users", response_model=User, status_code=status.HTTP_201_CREATED)
+async def create_user(user_request: UserRequest) -> User:
+    user = User(**user_request.model_dump())
+    await user.create()
+    return user
 
 
-@router.put("/users", response_model=Users, status_code=status.HTTP_201_CREATED)
-async def create_user(
-    request: Request,
-    user: Users,
-    session:  = Depends(get_session),
-):
-    try:
-        new_user = Users(**user.model_dump())
-        session.add(new_user)
-        session.commit()
-        return new_user
-    except Exception as e:
+@router.get("/users", response_model=list[User])
+async def get_users() -> list[User]:
+    posts: list[User] = await User.find_all().to_list()
+    return posts
+
+
+@router.get("/{user_id}", response_model=User)
+async def get_user(user_id: str) -> User:
+    user: User = valid_user(await User.get(user_id))
+    return user
+
+
+@router.put("/{user_id}", response_model=User, status_code=status.HTTP_202_ACCEPTED)
+async def update_user(user_id: str, user_request: UserRequest) -> User:
+    user: User = valid_user(await User.get(user_id))
+    await user.update(Set(user_request.model_dump(exclude_unset=True)))
+    user = valid_user(await User.get(user_id))
+    return user
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_202_ACCEPTED)
+async def delete_user(user_id: str) -> str:
+    user: User = valid_user(await User.get(user_id))
+    await user.delete()
+    return f"User {user_id} deleted"
+
+
+def valid_user(user: User | None) -> User:
+    if user is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-
-
-@router.get("/machines", response_model=list[Machines])
-async def read_machines(
-    request: Request,
-    session:  = Depends(get_session),
-) -> list[Users]:
-    return session.query(Machines).all()
-
-
-@router.put("/machines", response_model=Machines, status_code=status.HTTP_201_CREATED)
-async def create_machine(
-    request: Request,
-    machine: Machines,
-    session:  = Depends(get_session),
-):
-    try:
-        new_machine = Machines(**machine.model_dump())
-        session.add(new_machine)
-        session.commit()
-        return new_machine
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(e)
-        )
+    return user
