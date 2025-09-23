@@ -61,7 +61,7 @@
                   (old.passthru or {})
                   // {
                     tests = let
-                      virtualenv = final.mkVirtualEnv "bff-demo-pytest" {
+                      virtualenv = final.mkVirtualEnv "bff-demo-venv-tests" {
                         bff-demo = ["dev"];
                       };
                     in
@@ -157,9 +157,6 @@
           tailwindcss -i $src/app/style/input.css -o $out/app/style/output.css --minify
           chmod -w $out/app/style
 
-          chmod +x $out/app/app.py
-          patchShebangs $out/app/app.py
-
           cp $src/main.py $out/main
           chmod +x $out/main
           patchShebangs $out/main
@@ -176,7 +173,6 @@
         config = {
           Cmd = ["${bff-demo-package}/main"];
           ExposedPorts = {"7999/tcp" = {};};
-          Volumes = {"/data" = {};};
           Healthcheck = {
             Test = ["CMD-SHELL" "curl -f http://localhost:7999/health || exit 1"];
           };

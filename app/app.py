@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-
 # Standard Imports
+from datetime import datetime
 from typing import Callable, Coroutine
 from pathlib import Path
 import logging
@@ -19,8 +18,9 @@ from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 # My Imports
-from .routes import router as routes_router
-from .db import init_db
+from .models import User
+from .routes import api_router
+from .db import init_db, create_sudo_user, create_plain_user
 from .config import BASE_DIR
 
 
@@ -37,6 +37,8 @@ load_dotenv(Path(BASE_DIR.parent / ".env"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await create_sudo_user()
+    await create_plain_user()
     yield
 
 
@@ -50,9 +52,7 @@ app.add_middleware(
 # Add static files
 app.mount(
     "/style",
-    StaticFiles(
-        directory=BASE_DIR / "style", follow_symlink=True, check_dir=True, html=True
-    ),
+    StaticFiles(directory=BASE_DIR / "style", follow_symlink=True, check_dir=True, html=True),
     name="style",
 )
 # Create Jinja2 templates
@@ -60,16 +60,17 @@ templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "tem
 
 
 # ----------Auth-Functions-----------#
-users: dict[str, str] = {"admin": "admin"}  ## TODO: Replace with actual authentication
-
-
-def get_current_user(request: Request) -> str:
+def get_current_user(request: Request) -> tuple[str, str, bool]:
     username: str | None = request.session.get("username")
+    user_id: str | None = request.session.get("user_id")
+    admin: bool | None = request.session.get("admin")
     if username is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
-        )
-    return username
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    if admin is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    return (username, user_id, admin)
 
 
 # ----------Login-Routes-----------#
@@ -82,14 +83,16 @@ async def get_login(request: Request) -> _TemplateResponse:
 async def post_login(
     request: Request, username: str = Form(...), password: str = Form(...)
 ) -> RedirectResponse | _TemplateResponse:
-    if username in users and password == users[username]:
-        request.session["username"] = username
-        logger.info(f"User {username} logged in successfully")
+    user: User | None = await User.find_one(User.name == username, User.password == password)
+    if user is not None:
+        request.session["username"] = user.name
+        request.session["admin"] = user.admin
+        request.session["user_id"] = str(user.id)
+        logger.info(f"User Login at {datetime.now().isoformat()}: `{user}`")
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    logger.warning(f"Failed login attempt for user {username}")
-    return templates.TemplateResponse(
-        "login.html", {"request": request, "error": "Invalid credentials"}
-    )
+
+    logger.warning(f"Failed login attempt for user `{username}` and password `{password}`")
+    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
 
 
 @app.get("/logout")
@@ -104,11 +107,9 @@ async def logout(request: Request) -> RedirectResponse:
 @app.get("/", response_class=HTMLResponse)
 async def read_index(
     request: Request,
-    username: str = Depends(get_current_user),
+    user_info: tuple[str, str, bool] = Depends(get_current_user),
 ) -> _TemplateResponse:
-    return templates.TemplateResponse(
-        "index.html", {"request": request, "username": username}
-    )
+    return templates.TemplateResponse("index.html", {"request": request, "user_info": user_info})
 
 
 @app.get("/favicon.ico")
@@ -122,9 +123,7 @@ async def health(request: Request) -> dict[str, str]:
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(
-    request: Request, exc: HTTPException
-) -> _TemplateResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> _TemplateResponse:
     logger.error(f"HTTP error occurred: {exc.detail}")
     return templates.TemplateResponse(
         "error.html",
@@ -134,7 +133,7 @@ async def http_exception_handler(
 
 
 # -------Middleware-&-Routers-------#
-app.include_router(routes_router)
+app.include_router(api_router)
 
 
 @app.middleware("http")
@@ -147,13 +146,28 @@ async def auth_middleware(
         "/style/output.css",
         "/health",
         "/style/assets/favicon.ico",
-        "/docs",
     ]
     if any(request.url.path.startswith(path) for path in excluded_paths):
         return await call_next(request)
 
-    if "username" not in request.session:
+    if "username" not in request.session or "user_id" not in request.session:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def auth_admin_middleware(
+    request: Request,
+    call_next: Callable[[Request], Coroutine[None, None, Response]],
+) -> Response:
+    included_paths: list[str] = [
+        "/api",
+        "/docs",
+    ]
+    if any(request.url.path.startswith(path) for path in included_paths):
+        if not request.session["admin"]:
+            return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     return await call_next(request)
 

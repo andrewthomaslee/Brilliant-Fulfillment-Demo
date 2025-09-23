@@ -39,6 +39,12 @@ dev = [
 packages = []
 
 
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+ignore = ["E712"]
+
+
 [tool.pyrefly]
 project-includes = ["**/*"]
 project-excludes = ["**/*venv/**/*"]

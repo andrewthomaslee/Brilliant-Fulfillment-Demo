@@ -1,6 +1,5 @@
 # Standard Imports
 from typing import AsyncGenerator, Any
-import asyncio
 import logging
 from logging import Logger
 from pydantic_settings import BaseSettings
@@ -11,7 +10,7 @@ from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 # My Imports
-from .models.admin import User
+from .models import User, Machine, Log
 
 
 logging.basicConfig(level=logging.INFO)
@@ -40,5 +39,19 @@ async def init_db() -> None:
     client: AsyncMongoClient = AsyncMongoClient(conn_settings.DB_URI)
     await init_beanie(
         database=client["admin"],
-        document_models=[User],
+        document_models=[User, Machine, Log],
     )
+
+
+async def create_sudo_user() -> None:
+    sudo_user: User | None = await User.find_one(User.name == "sudo", User.admin == True, User.password == "root")
+    if sudo_user is None:
+        result = await User(name="sudo", password="root", admin=True).save()
+        logger.info(f"Created sudo user: {result}")
+
+
+async def create_plain_user() -> None:
+    plain_user: User | None = await User.find_one(User.name == "user", User.admin == False, User.password == "plain")
+    if plain_user is None:
+        result = await User(name="user", password="plain", admin=False).save()
+        logger.info(f"Created plain user: {result}")
