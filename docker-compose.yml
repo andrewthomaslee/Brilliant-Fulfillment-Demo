@@ -23,6 +23,12 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    depends_on:
+      - mongo
+      - valkey
+    environment:
+      - DB_URI=mongodb://mongo
+      - KV_URI=valkey://valkey
     networks:
       - backend
     tty: true
