@@ -1,13 +1,16 @@
-from typing import Any
-from datetime import datetime, timezone
-from enum import StrEnum
+# Standard Imports
+from datetime import datetime
 
+# Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document, Link, Indexed, TimeSeriesConfig, Granularity
+from beanie import Document
+
+# My Imports
+from ..utils import current_time
 
 
 class Machine(Document):
-    joined_time: datetime = datetime.now(timezone.utc)
+    joined_time: datetime = Field(default_factory=current_time)
     name: str
     joined_condition: int = Field(ge=0, le=5)
     special_note: str | None = None
@@ -16,10 +19,14 @@ class Machine(Document):
         name = "machines"
 
 
-class MachineGet(BaseModel):
-    joined_time: datetime | None = None
-    name: str | None = None
-    joined_condition: int | None = None
+class MachineQuery(BaseModel):
+    gte: bool | None = Field(
+        default=True,
+        description="If True, `joined_time` and `joined_condition` are filtered as greater than or equal to. If False, values are filtered as less than or equal to.",
+    )
+    joined_time: datetime | None = Field(default=None)
+    name: str | None = Field(default=None, min_length=1)
+    joined_condition: int | None = Field(default=None, ge=0, le=5)
 
 
 class MachineCreate(BaseModel):

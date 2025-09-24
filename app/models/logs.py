@@ -1,10 +1,14 @@
-from typing import Any
-from datetime import datetime, timezone
+# Standard Imports
+from typing import Annotated
+from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
-from beanie import Document, Link, Indexed, TimeSeriesConfig, Granularity
+# Third Party Imports
+from pydantic import BaseModel, Field, AfterValidator
+from beanie import Document, Link, TimeSeriesConfig, Granularity
 
+# My Imports
+from ..utils import check_document_exists, current_time
 from .users import User
 from .machines import Machine
 
@@ -28,9 +32,9 @@ class Prompt(BaseModel):
 
 
 class Log(Document):
-    ts: datetime = Field(default_factory=datetime.now)
-    user: Link[User]
-    machine: Link[Machine]
+    ts: datetime = Field(default_factory=current_time)
+    user: Annotated[Link[User], AfterValidator(check_document_exists)]
+    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)]
     active: bool
     prompt: Prompt
 
@@ -42,16 +46,27 @@ class Log(Document):
         )
 
 
-class LogGet(BaseModel):
+class LogQuery(BaseModel):
+    gte: bool | None = Field(
+        default=True,
+        description="If True, `ts` is filtered as greater than or equal to. If False, values are filtered as less than or equal to.",
+    )
     ts: datetime | None = None
-    user: User | None = None
-    machine: Machine | None = None
+    user: Annotated[Link[User], AfterValidator(check_document_exists)] | None = None
+    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)] | None = None
     active: bool | None = None
     prompt: Prompt | None = None
 
 
 class LogCreate(BaseModel):
-    user: User
-    machine: Machine
+    user: Annotated[Link[User], AfterValidator(check_document_exists)]
+    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)]
     active: bool
     prompt: Prompt
+
+
+class LogUpdate(BaseModel):
+    user: Annotated[Link[User], AfterValidator(check_document_exists)] | None = None
+    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)] | None = None
+    active: bool | None = None
+    prompt: Prompt | None = None

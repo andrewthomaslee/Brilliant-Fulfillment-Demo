@@ -280,6 +280,7 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
+          export FAKE_DATA=true
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
           uv sync
@@ -301,6 +302,7 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
+          export FAKE_DATA=true
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
           export VIRTUAL_ENV=${venv}

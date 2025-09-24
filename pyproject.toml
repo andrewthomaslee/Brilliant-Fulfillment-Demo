@@ -19,6 +19,7 @@ dependencies = [
     "pyarrow>=21.0.0",
     "pydantic-settings>=2.10.1",
     "pymongo>=4.15.1",
+    "pytz>=2025.2",
     "uvicorn>=0.36.0",
     "valkey>=6.1.1",
 ]

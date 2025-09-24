@@ -1,23 +1,30 @@
 # Standard Imports
-from typing import Any
+from typing import Any, Annotated
 from datetime import datetime
 
 # Third Party Imports
-from fastapi import APIRouter, Request, Depends, HTTPException, status
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
-from beanie.operators import Set
+from beanie.operators import Set, RegEx, GTE, LTE
 from pydantic import ValidationError
 
 # My Imports
 from ..models import (
     Machine,
-    MachineGet,
+    MachineQuery,
     MachineCreate,
     MachineUpdate,
 )
+
+
+# ------------------Helpers-------------------#
+async def validate_machine(machine: Machine | None) -> Machine:
+    if machine is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine not found")
+    return machine
 
 
 # ------------------Setup-------------------#
@@ -44,10 +51,36 @@ async def get_machines() -> list[Machine]:
     return machines
 
 
+@router.get("/query/", response_model=list[Machine])
+async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> list[Machine]:
+    query_params: list[GTE | LTE | RegEx] = []
+    try:
+        operator: type[GTE] | type[LTE] = GTE if machine_query.gte else LTE
+        query_params.extend(
+            [operator(k, v) for k, v in machine_query.model_dump(exclude_unset=True).items() if "joined" in k]
+        )
+        if machine_query.name is not None:
+            query_params.append(RegEx("name", machine_query.name, "ixsm"))
+
+        machines: list[Machine] = await Machine.find(*query_params).to_list()
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    return machines
+
+
+@router.get("/by_name/", response_model=list[Machine])
+async def get_machines_by_name(machine_name: Annotated[str, Query(min_length=1)]) -> list[Machine]:
+    try:
+        machines: list[Machine] = await Machine.find(RegEx("name", machine_name, "ixsm")).to_list()
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    return machines
+
+
 @router.get("/{machine_id}", response_model=Machine)
 async def get_machine(machine_id: str) -> Machine:
     try:
-        machine: Machine = valid_machine(await Machine.get(machine_id))
+        machine: Machine = await validate_machine(await Machine.get(machine_id))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
     return machine
@@ -56,9 +89,9 @@ async def get_machine(machine_id: str) -> Machine:
 @router.put("/{machine_id}", response_model=Machine, status_code=status.HTTP_202_ACCEPTED)
 async def update_machine(machine_id: str, machine_request: MachineUpdate) -> Machine:
     try:
-        machine: Machine = valid_machine(await Machine.get(machine_id))
+        machine: Machine = await validate_machine(await Machine.get(machine_id))
         await machine.update(Set(machine_request.model_dump(exclude_unset=True)))
-        machine = valid_machine(await Machine.get(machine_id))
+        machine = await validate_machine(await Machine.get(machine_id))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
     return machine
@@ -67,14 +100,8 @@ async def update_machine(machine_id: str, machine_request: MachineUpdate) -> Mac
 @router.delete("/{machine_id}", status_code=status.HTTP_202_ACCEPTED)
 async def delete_machine(machine_id: str) -> str:
     try:
-        machine: Machine = valid_machine(await Machine.get(machine_id))
+        machine: Machine = await validate_machine(await Machine.get(machine_id))
         await machine.delete()
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
     return f"Machine {machine_id} deleted"
-
-
-def valid_machine(machine: Machine | None) -> Machine:
-    if machine is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine not found")
-    return machine

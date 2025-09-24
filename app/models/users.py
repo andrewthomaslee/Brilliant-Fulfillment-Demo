@@ -1,13 +1,16 @@
-from typing import Any
-from datetime import datetime, timezone
-from enum import StrEnum
+# Standard Imports
+from datetime import datetime
 
+# Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document, Link, Indexed, TimeSeriesConfig, Granularity
+from beanie import Document
+
+# My Imports
+from ..utils import current_time
 
 
 class User(Document):
-    joined_time: datetime = datetime.now(timezone.utc)
+    joined_time: datetime = Field(default_factory=current_time)
     admin: bool = False
     name: str
     password: str

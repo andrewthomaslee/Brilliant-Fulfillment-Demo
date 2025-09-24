@@ -1,11 +1,8 @@
 # Standard Imports
 from datetime import datetime
 from typing import Callable, Coroutine
-from pathlib import Path
 import logging
 from logging import Logger
-import os
-from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
 # Third Party Imports
@@ -20,8 +17,8 @@ from starlette.middleware.sessions import SessionMiddleware
 # My Imports
 from .models import User
 from .routes import api_router
-from .db import init_db, create_sudo_user, create_plain_user
-from .config import BASE_DIR
+from .db import init_db, load_fake_data
+from .config import BASE_DIR, CONFIG_SETTINGS
 
 
 # ---------------Logging---------------#
@@ -30,15 +27,10 @@ logger: Logger = logging.getLogger(__name__)
 
 
 # ---------Setup-App---------------#
-# Load env
-load_dotenv(Path(BASE_DIR.parent / ".env"))
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    await create_sudo_user()
-    await create_plain_user()
+    await load_fake_data()
     yield
 
 
@@ -174,5 +166,5 @@ async def auth_admin_middleware(
 
 app.add_middleware(
     SessionMiddleware,  # pyrefly: ignore
-    secret_key=os.getenv("SECRET_KEY", "your-secret-key"),
+    secret_key=CONFIG_SETTINGS.SECRET_KEY,
 )
