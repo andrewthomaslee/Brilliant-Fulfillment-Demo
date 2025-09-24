@@ -9,7 +9,6 @@ from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
 from beanie.operators import Set, RegEx, GTE, LTE
-from pydantic import ValidationError
 
 # My Imports
 from ..models import (
@@ -40,14 +39,17 @@ async def create_machine(machine_request: MachineCreate) -> Machine:
     try:
         machine = Machine(**machine_request.model_dump())
         await machine.create()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Bad Request: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machine
 
 
 @router.get("/", response_model=list[Machine])
 async def get_machines() -> list[Machine]:
-    machines: list[Machine] = await Machine.find_all().to_list()
+    try:
+        machines: list[Machine] = await Machine.find_all().to_list()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machines
 
 
@@ -63,8 +65,8 @@ async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> lis
             query_params.append(RegEx("name", machine_query.name, "ixsm"))
 
         machines: list[Machine] = await Machine.find(*query_params).to_list()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machines
 
 
@@ -72,8 +74,8 @@ async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> lis
 async def get_machines_by_name(machine_name: Annotated[str, Query(min_length=1)]) -> list[Machine]:
     try:
         machines: list[Machine] = await Machine.find(RegEx("name", machine_name, "ixsm")).to_list()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machines
 
 
@@ -81,8 +83,8 @@ async def get_machines_by_name(machine_name: Annotated[str, Query(min_length=1)]
 async def get_machine(machine_id: str) -> Machine:
     try:
         machine: Machine = await validate_machine(await Machine.get(machine_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machine
 
 
@@ -92,8 +94,8 @@ async def update_machine(machine_id: str, machine_request: MachineUpdate) -> Mac
         machine: Machine = await validate_machine(await Machine.get(machine_id))
         await machine.update(Set(machine_request.model_dump(exclude_unset=True)))
         machine = await validate_machine(await Machine.get(machine_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return machine
 
 
@@ -102,6 +104,6 @@ async def delete_machine(machine_id: str) -> str:
     try:
         machine: Machine = await validate_machine(await Machine.get(machine_id))
         await machine.delete()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Machine not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return f"Machine {machine_id} deleted"

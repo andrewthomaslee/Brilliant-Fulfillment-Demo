@@ -1,20 +1,19 @@
 # Standard Imports
-from typing import Any
+from typing import Any, Annotated
 from datetime import datetime
 
 # Third Party Imports
-from fastapi import APIRouter, Request, Depends, HTTPException, status
+from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
-from beanie.operators import Set
-from pydantic import ValidationError
+from beanie.operators import Set, RegEx, GTE, LTE, Eq
 
 # My Imports
 from ..models import (
     User,
-    UserGet,
+    UserQuery,
     UserCreate,
     UserUpdate,
 )
@@ -40,23 +39,49 @@ async def create_user(user_request: UserCreate) -> User:
     try:
         user = User(**user_request.model_dump())
         await user.create()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Bad Request: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return user
 
 
 @router.get("/", response_model=list[User])
 async def get_users() -> list[User]:
-    users: list[User] = await User.find_all().to_list()
+    try:
+        users: list[User] = await User.find_all().to_list()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return users
 
 
-@router.get("/", response_model=list[User])
-async def query_users(user_query: UserGet) -> list[User]:
+@router.get("/query/", response_model=list[User])
+async def query_users(user_query: Annotated[UserQuery, Query()]) -> list[User]:
+    query_params: list[GTE | LTE | RegEx | Eq] = []
     try:
-        users: list[User] = await User.find(user_query.model_dump(exclude_unset=True)).to_list()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User not found: {e}")
+        operator: type[GTE] | type[LTE] = GTE if user_query.gte else LTE
+        if user_query.joined_time is not None:
+            query_params.append(operator("joined_time", user_query.joined_time))
+
+        if user_query.name is not None:
+            query_params.append(RegEx("name", user_query.name, "ixsm"))
+
+        if user_query.admin is not None:
+            query_params.append(Eq("admin", user_query.admin))
+
+        if user_query.password is not None:
+            query_params.append(RegEx("password", user_query.password))
+
+        users: list[User] = await User.find(*query_params).to_list()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+    return users
+
+
+@router.get("/by_name/", response_model=list[User])
+async def get_users_by_name(user_name: Annotated[str, Query(min_length=1)]) -> list[User]:
+    try:
+        users: list[User] = await User.find(RegEx("name", user_name, "ixsm")).to_list()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return users
 
 
@@ -64,8 +89,8 @@ async def query_users(user_query: UserGet) -> list[User]:
 async def get_user(user_id: str) -> User:
     try:
         user: User = await validate_user(await User.get(user_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return user
 
 
@@ -75,8 +100,8 @@ async def update_user(user_id: str, user_request: UserUpdate) -> User:
         user: User = await validate_user(await User.get(user_id))
         await user.update(Set(user_request.model_dump(exclude_unset=True)))
         user = await validate_user(await User.get(user_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return user
 
 
@@ -85,6 +110,6 @@ async def delete_user(user_id: str) -> str:
     try:
         user: User = await validate_user(await User.get(user_id))
         await user.delete()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return f"User {user_id} deleted"

@@ -19,8 +19,13 @@ class User(Document):
         name = "users"
 
 
-class UserGet(BaseModel):
-    admin: bool = False
+class UserQuery(BaseModel):
+    gte: bool | None = Field(
+        default=True,
+        description="If True, `joined_time` is filtered as greater than or equal to. If False, value is filtered as less than or equal to.",
+    )
+    joined_time: datetime | None = None
+    admin: bool | None = False
     name: str | None
     password: str | None
 

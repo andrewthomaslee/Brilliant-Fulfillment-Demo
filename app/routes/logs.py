@@ -9,7 +9,6 @@ from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
 from beanie.operators import Set, GTE, LTE, RegEx, Eq
-from pydantic import ValidationError
 
 # My Imports
 from ..models import (
@@ -39,14 +38,18 @@ async def create_log(log_request: LogCreate) -> Log:
     try:
         log = Log(**log_request.model_dump())
         await log.create()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Bad Request: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return log
 
 
 @router.get("/", response_model=list[Log])
-async def get_logs() -> list[Log]:
-    logs: list[Log] = await Log.find_all().to_list()
+async def get_logs(limit: Annotated[int, Query(default=1000)], ascending: bool = True) -> list[Log]:
+    sort_ts: str = "+ts" if ascending else "-ts"
+    try:
+        logs: list[Log] = await Log.find_all().limit(limit).sort(sort_ts).to_list()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return logs
 
 
@@ -67,8 +70,8 @@ async def query_logs(log_query: Annotated[LogQuery, Query()]) -> list[Log]:
             query_params.append(Eq(Log.prompt, log_query.prompt))
 
         logs: list[Log] = await Log.find(*query_params).to_list()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Log not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return logs
 
 
@@ -84,8 +87,8 @@ async def get_logs_by_name(
             query_params.append(RegEx("machine_name", machine_name, "ixsm"))
 
         logs: list[Log] = await Log.find(*query_params).to_list()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Log not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return logs
 
 
@@ -93,8 +96,8 @@ async def get_logs_by_name(
 async def get_log(log_id: str) -> Log:
     try:
         log: Log = await validate_log(await Log.get(log_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Log not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return log
 
 
@@ -104,8 +107,8 @@ async def update_log(log_id: str, log_request: Log) -> Log:
         log: Log = await validate_log(await Log.get(log_id))
         await log.update(Set(log_request.model_dump(exclude_unset=True)))
         log = await validate_log(await Log.get(log_id))
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Log not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return log
 
 
@@ -114,6 +117,6 @@ async def delete_log(log_id: str) -> str:
     try:
         log: Log = await validate_log(await Log.get(log_id))
         await log.delete()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Log not found: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
     return f"Log {log_id} deleted"
