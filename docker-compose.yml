@@ -29,6 +29,8 @@ services:
     environment:
       - DB_URI=mongodb://mongo
       - KV_URI=valkey://valkey
+      - SECRET_KEY=${SECRET_KEY:-should-be-changed}
+      - FAKE_DATA=${FAKE_DATA:-False}
     networks:
       - backend
     tty: true

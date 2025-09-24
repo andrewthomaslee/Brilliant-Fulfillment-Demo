@@ -249,6 +249,8 @@
           posting
           mitmproxy
           duckdb
+          pyrefly
+          ruff
           yazi
           valkey
           lazydocker
@@ -280,11 +282,10 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
-          export FAKE_DATA=true
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
-          uv sync
-          source .venv/bin/activate
+          uv sync --directory $REPO_ROOT
+          source $REPO_ROOT/.venv/bin/activate
         '';
       };
       # This devShell uses uv2nix to construct a virtual environment purely from Nix, using the same dependency specification as the application.
@@ -302,12 +303,11 @@
         shellHook = ''
           unset PYTHONPATH
           export REPO_ROOT=$(git rev-parse --show-toplevel)
-          export FAKE_DATA=true
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
           export VIRTUAL_ENV=${venv}
           source ${venv}/bin/activate
-          source ${./scripts/vscode.sh} # Configure VS Code
+          nix run $REPO_ROOT#vscode
         '';
       };
     });
