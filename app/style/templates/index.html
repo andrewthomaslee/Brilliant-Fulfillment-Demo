@@ -3,5 +3,5 @@
 {% block title %}BFF Logger{% endblock %}
 
 {% block content %}
-<button data-on-click="@put('/settings/dark_mode/', {filterSignals : '/^dark_mode$/'})">Light/Dark Mode</button>
+<button data-on-click="@get('/settings/dark_mode/')">Light/Dark Mode</button>
 {% endblock %}

@@ -11,9 +11,7 @@
     {% endblock %}
 </head>
 <body id="base_body"
-data-signals="{dark_mode: false}"
-data-class="{dark: $dark_mode}"
-class="{% block body_class %}{% endblock %}">
+class="{% if request.session.get('dark_mode') %} dark {% endif %}">
     {% block content %}{% endblock %}
     
     {% block scripts %}{% endblock %}

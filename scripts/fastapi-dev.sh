@@ -72,8 +72,8 @@ tmux send-keys -t $SESSION_NAME:3 "docker run --rm -p 27017:27017 -v ./data/mong
 tmux new-window -t $SESSION_NAME -n "🧭_Compass" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:4 "mongodb-compass --trustedConnectionString mongodb://localhost:27017 --autoUpdates false" C-m
 
-tmux new-window -t $SESSION_NAME -n "🦁_Brave" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:5 "brave --user-data-dir=/tmp/brave-dev-uvicorn --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 http://0.0.0.0:8000" C-m
+tmux new-window -t $SESSION_NAME -n "🌐_Chrome" -c "$REPO_ROOT"
+tmux send-keys -t $SESSION_NAME:5 "chromium --user-data-dir=/tmp/brave-dev-uvicorn --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 http://0.0.0.0:8000" C-m
 
 tmux new-window -t $SESSION_NAME -n "🐍_FastAPI" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:6 "uvicorn app.app:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5 --reload-dir ./app" C-m

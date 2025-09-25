@@ -12,6 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
+from datastar_py import ServerSentEventGenerator as SSE
+from datastar_py.fastapi import datastar_response
 
 # My Imports
 from .models import User
