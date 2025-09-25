@@ -11,7 +11,7 @@
     {% endblock %}
 </head>
 <body id="base_body"
-class="{% if request.session.get('dark_mode') %} dark {% endif %}">
+class="{% if request.session.get('dark_mode') %} dark {% endif %} antialiased ">
     {% block content %}{% endblock %}
     
     {% block scripts %}{% endblock %}

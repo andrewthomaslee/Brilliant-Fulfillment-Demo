@@ -1,14 +1,14 @@
 # Standard Imports
-from typing import Annotated, Literal
+from typing import Literal
 from datetime import datetime
 from enum import StrEnum
 
 # Third Party Imports
-from pydantic import BaseModel, Field, AfterValidator
+from pydantic import BaseModel, Field
 from beanie import Document, Link, TimeSeriesConfig, Granularity
 
 # My Imports
-from ..utils import check_document_exists, current_time
+from ..utils import current_time
 from .users import User
 from .machines import Machine
 
@@ -73,3 +73,18 @@ class LogUpdate(BaseModel):
     machine: Link[Machine] | None = None
     active: bool | None = None
     prompt: Prompt | None = None
+
+
+class PromptCheckOut(BaseModel):
+    machine_name: str = Field(alias="prompt_machine_name")
+    condition: int = Field(ge=0, le=5, alias="prompt_condition")
+    battery: int = Field(ge=0, le=100, alias="prompt_battery")
+    task: Task = Field(alias="prompt_task")
+    special_note: str | None = Field(alias="prompt_special_note")
+
+
+class PromptCheckIn(BaseModel):
+    machine_name: str = Field(alias="prompt_machine_name")
+    condition: int = Field(ge=0, le=5, alias="prompt_condition")
+    battery: int = Field(ge=0, le=100, alias="prompt_battery")
+    special_note: str | None = Field(alias="prompt_special_note")

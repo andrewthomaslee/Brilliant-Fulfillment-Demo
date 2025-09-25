@@ -12,15 +12,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
-from datastar_py import ServerSentEventGenerator as SSE
-from datastar_py.fastapi import datastar_response
+from datastar_py import ServerSentEventGenerator as SSE  # noqa: F401
+from datastar_py.fastapi import datastar_response  # noqa: F401
+import valkey.asyncio as valkey
 
 # My Imports
 from .models import User
-from .routes import api_router, settings_router
-from .db import init_db, load_fake_data
+from .routes import api_router, settings_router, packer_router
+from .db import init_db, load_fake_data, get_valkey
 from .config import BASE_DIR, CONFIG_SETTINGS, templates
-from .utils import get_current_user
 
 
 # ---------------Logging---------------#
@@ -88,9 +88,19 @@ async def logout(request: Request) -> RedirectResponse:
 @app.get("/", response_class=HTMLResponse)
 async def read_index(
     request: Request,
-    user_info: tuple[str, str, bool] = Depends(get_current_user),
+    kv: valkey.Valkey = Depends(get_valkey),
 ) -> _TemplateResponse:
-    return templates.TemplateResponse("index.html", {"request": request, "user_info": user_info})
+    try:
+        checked_out = await kv.get(f"users:{request['user_id']}")
+        if checked_out is not None:
+            active = True
+        else:
+            active = False
+    except Exception as e:
+        logger.error(f"Error fetching kv on root/ : {e}")
+        pass
+
+    return templates.TemplateResponse("index.html", {"request": request, "active": active})
 
 
 @app.get("/favicon.ico")
@@ -116,6 +126,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> _Templ
 # -------Middleware-&-Routers-------#
 app.include_router(api_router)
 app.include_router(settings_router)
+app.include_router(packer_router)
 
 
 @app.middleware("http")

@@ -1,19 +1,14 @@
 # Standard Imports
-from typing import Any, Annotated
-from datetime import datetime
+from typing import Annotated
 
 # Third Party Imports
-from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Request, HTTPException, status, Query
 from fastapi.responses import HTMLResponse
 from starlette.templating import _TemplateResponse
-from datastar_py import ServerSentEventGenerator as SSE
-from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
-from mohtml import div  # pyrefly: ignore
 from beanie.operators import Set, RegEx, GTE, LTE, Eq, NE, LT, GT
 
 # My Imports
 from ..config import templates
-from ..utils import get_current_user
 
 from ..models import (
     User,
@@ -41,9 +36,8 @@ router: APIRouter = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def read_index(
     request: Request,
-    user_info: tuple[str, str, bool] = Depends(get_current_user),
 ) -> _TemplateResponse:
-    return templates.TemplateResponse("create_user.html", {"request": request, "user_info": user_info})
+    return templates.TemplateResponse("create_user.html", {"request": request})
 
 
 # -------------------User-Routes-------------------#

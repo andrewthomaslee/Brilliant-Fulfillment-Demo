@@ -1,10 +1,10 @@
 # Standard Imports
-from typing import Any, Annotated, Literal
+from typing import Literal
 from datetime import datetime
 
 # Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document
+from beanie import Document, Indexed
 
 # My Imports
 from ..utils import current_time
@@ -13,7 +13,7 @@ from ..utils import current_time
 class User(Document):
     joined_time: datetime = Field(default_factory=current_time)
     admin: bool = False
-    name: str = Field(min_length=1)
+    name: Indexed(str) = Field(min_length=1)  # pyrefly: ignore
     password: str = Field(min_length=1)
 
     class Settings:

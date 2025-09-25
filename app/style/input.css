@@ -2,24 +2,24 @@
 
 @layer base {
   :root {
-    /* Spaceduck (Light Mode) */
-      --brand-accent: #7a5ccc;
-      --brand-accent-hover: #5d42a7;
-      --brand-text-required: #d93025;
-      --brand-success: #1e8e3e;
+    /* Light Mode (Default) */
+    --brand-accent: #7a5ccc;
+    --brand-accent-hover: #5d42a7;
+    --brand-text-required: #d93025;
+    --brand-success: #1e8e3e;
 
-      --bg-primary: #f3f4f6;
-      --bg-secondary: #ffffff;
-      --border-primary: #d1d5db;
-      --border-secondary: #9ca3af;
-      --text-primary: #111827;
-      --text-secondary: #374151;
-      --text-muted: #4b5563;
-      --text-placeholder: #9ca3af;
-    }
+    --bg-primary: #f3f4f6;
+    --bg-secondary: #ffffff;
+    --border-primary: #d1d5db;
+    --border-secondary: #9ca3af;
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-muted: #4b5563;
+    --text-placeholder: #9ca3af;
+  }
 
   .dark {
-    /* Spaceduck (Dark Mode) */
+    /* Spaceduck (Dark Mode) Overrides */
     --brand-accent: #7a5ccc;
     --brand-accent-hover: #b3a1e6;
     --brand-text-required: #e33400;
@@ -35,15 +35,10 @@
     --text-placeholder: #686f9a;
   }
   
-
   body {
     @apply bg-[var(--bg-primary)] transition-colors duration-300;
   }
 }
-
-/* --- NEW: Custom 'light' Variant --- */
-/* This tells Tailwind to create 'light:' variants that apply when a .light class is on a parent */
-@custom-variant light (&:where(.light *));
 
 @layer components {
   /* Page container - centers the card */
@@ -51,7 +46,7 @@
     @apply min-h-screen flex flex-col items-center justify-center p-4;
   }
 
-  /* The card component with light/dark variants */
+  /* The card component */
   .form-card {
     @apply w-full max-w-lg p-8 sm:p-10 rounded-2xl shadow-2xl transition-colors duration-300;
     @apply bg-[var(--bg-secondary)] border border-[var(--border-primary)];
@@ -115,13 +110,13 @@
   .btn {
     @apply inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold;
     @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-    @apply focus:ring-offset-[var(--bg-primary)]; /* Ring offset should match the body background */
+    @apply focus:ring-offset-[var(--bg-primary)];
     @apply transition-all duration-200 ease-in-out;
   }
 
   /* Primary action button (Submit) */
   .btn-primary {
-    @apply text-[var(--bg-secondary)]; /* Text is now secondary background (white/black) */
+    @apply text-[var(--bg-secondary)];
     @apply bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)];
     @apply focus:ring-[var(--brand-accent-hover)];
   }
@@ -140,5 +135,138 @@
     @apply font-mono text-sm whitespace-pre-wrap break-all;
     @apply bg-[var(--border-primary)]/40 border border-[var(--border-primary)];
     @apply text-[var(--text-muted)];
+  }
+  
+  /* Floating, sticky banner container */
+  .top-banner {
+    @apply sticky top-4 inset-x-4 z-50;
+    @apply max-w-7xl mx-auto;
+    @apply bg-[var(--bg-secondary)]/80 backdrop-blur-lg;
+    @apply border border-[var(--border-primary)] rounded-xl shadow-lg;
+    @apply transition-colors duration-300;
+  }
+
+  /* Inner container for flex layout */
+  .top-banner-inner {
+    @apply flex items-center justify-between gap-4 px-4 py-2;
+  }
+
+  /* Container for the action buttons */
+  .banner-actions {
+    @apply flex items-center justify-end gap-2;
+  }
+
+  /* A stylish container for the username display */
+  .banner-username-display {
+    @apply bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg;
+    @apply px-4 py-2 text-sm font-bold text-[var(--text-primary)] whitespace-nowrap;
+  }
+
+  /* Specific styling for the circular theme toggle button */
+  .theme-toggle-btn {
+    @apply flex items-center justify-center size-9 rounded-full;
+    @apply bg-transparent text-[var(--text-muted)];
+    @apply hover:bg-[var(--border-primary)] hover:text-[var(--text-primary)];
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--border-secondary)];
+    @apply focus:ring-offset-[var(--bg-secondary)];
+    @apply transition-colors duration-200;
+  }
+
+  /* Styling for the SVG icons inside the theme toggle */
+  .theme-icon {
+    @apply size-5;
+  }
+  
+  /* Base style for header buttons (e.g., Sign Out) */
+  .btn-header {
+    @apply inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold;
+    @apply bg-transparent border-2 border-[var(--border-secondary)];
+    @apply text-[var(--text-muted)];
+    @apply transition-colors duration-200 ease-in-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--border-secondary)];
+    @apply focus:ring-offset-[var(--bg-secondary)];
+    @apply hover:bg-[var(--border-primary)] hover:text-[var(--text-primary)];
+  }
+
+  /* Specific style for the red Admin Panel button */
+  .btn-header-admin {
+    @apply inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold;
+    @apply bg-transparent border-2 border-[var(--brand-text-required)];
+    @apply text-[var(--brand-text-required)];
+    @apply transition-colors duration-200 ease-in-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand-text-required)];
+    @apply focus:ring-offset-[var(--bg-secondary)];
+    @apply hover:bg-[var(--brand-text-required)]/10;
+  }
+
+  /* === Check Out Elements === */
+
+  /* Main container for the Check Out form */
+  .checkout-card {
+    @apply w-full max-w-2xl mx-auto p-6 sm:p-8 rounded-2xl shadow-xl;
+    @apply bg-[var(--bg-secondary)] border border-[var(--border-primary)];
+  }
+
+  /* Styling for the top heading "Take this machine:" */
+  .checkout-heading {
+    @apply text-lg font-semibold text-[var(--text-primary)] mb-4;
+  }
+  
+  /* Flex container for Machine Name and Missing button */
+  .machine-info {
+    @apply flex items-center justify-between gap-4 p-4 rounded-lg;
+    @apply bg-[var(--bg-primary)] border border-[var(--border-primary)];
+  }
+
+  /* Large display for the machine name */
+  .machine-name-display {
+    @apply text-2xl font-bold text-[var(--text-primary)];
+  }
+
+  /* Responsive grid for task buttons */
+  .task-grid {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pt-6;
+  }
+
+  /* Individual task button styling */
+  .btn-task {
+    @apply w-full px-3 py-4 text-center rounded-lg text-sm font-semibold;
+    @apply bg-transparent border-2 border-[var(--border-primary)];
+    @apply text-[var(--text-muted)];
+    @apply transition-all duration-200 ease-in-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand-accent)];
+    @apply focus:ring-offset-[var(--bg-secondary)];
+    @apply hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent)]/10 hover:text-[var(--brand-accent)];
+  }
+  /* Optional: Add a class for a selected task button */
+  .btn-task.selected {
+      @apply bg-[var(--brand-accent)] text-[var(--bg-secondary)] border-[var(--brand-accent)];
+  }
+
+  /* Container for a slider and its label */
+  .slider-container {
+    @apply space-y-2;
+  }
+
+  /* Flex container for the slider's label text and value */
+  .slider-label {
+    @apply flex justify-between text-sm font-medium text-[var(--text-muted)];
+  }
+
+  /* Custom styling for the range slider */
+  .range-slider {
+    @apply w-full h-2 rounded-lg appearance-none cursor-pointer;
+    @apply bg-[var(--border-primary)];
+  }
+  .range-slider::-webkit-slider-thumb {
+    @apply appearance-none w-5 h-5 bg-[var(--brand-accent)] rounded-full ring-2 ring-[var(--bg-secondary)] shadow;
+  }
+  .range-slider::-moz-range-thumb {
+    @apply w-5 h-5 bg-[var(--brand-accent)] rounded-full border-none shadow;
+  }
+
+  /* Special styling for the large machine name text input */
+  .machine-name-input {
+    @apply text-center text-2xl font-bold p-4;
   }
 }

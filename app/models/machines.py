@@ -1,18 +1,24 @@
 # Standard Imports
-from typing import Any, Annotated, Literal
+import logging
+from logging import Logger
+from typing import Literal
 from datetime import datetime
 
 # Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document
+from beanie import Document, Indexed
 
 # My Imports
 from ..utils import current_time
 
 
+logging.basicConfig(level=logging.INFO)
+logger: Logger = logging.getLogger(__name__)
+
+
 class Machine(Document):
     joined_time: datetime = Field(default_factory=current_time)
-    name: str
+    name: Indexed(str, unique=True)  # pyrefly: ignore
     joined_condition: int = Field(ge=0, le=5)
     special_note: str | None = None
 
@@ -37,3 +43,7 @@ class MachineUpdate(BaseModel):
     name: str | None = None
     joined_condition: int | None = None
     special_note: str | None = None
+
+
+class MissingMachine(BaseModel):
+    machine_name: str = Field(min_length=1, alias="prompt_machine_name")
