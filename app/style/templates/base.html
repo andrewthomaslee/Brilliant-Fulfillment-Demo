@@ -7,10 +7,13 @@
     <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js"></script>
     <link href="{{ url_for('style', path='/output.css') }}" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ url_for('style', path='/assets/favicon.ico') }}">
-    <title>{% block title %}monotes{% endblock %}</title>
+    <title>{% block title %}BFF Logger{% endblock %}</title>
     {% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body id="base_body"
+data-signals="{dark_mode: false}"
+data-class="{dark: $dark_mode}"
+class="{% block body_class %}{% endblock %}">
     {% block content %}{% endblock %}
     
     {% block scripts %}{% endblock %}

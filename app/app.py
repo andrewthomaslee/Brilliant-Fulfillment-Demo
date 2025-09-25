@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 # My Imports
 from .models import User
-from .routes import api_router
+from .routes import api_router, settings_router
 from .db import init_db, load_fake_data
 from .config import BASE_DIR, CONFIG_SETTINGS, templates
 from .utils import get_current_user
@@ -113,6 +113,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> _Templ
 
 # -------Middleware-&-Routers-------#
 app.include_router(api_router)
+app.include_router(settings_router)
 
 
 @app.middleware("http")
@@ -145,8 +146,11 @@ async def auth_admin_middleware(
         "/docs",
     ]
     if any(request.url.path.startswith(path) for path in included_paths):
-        if not request.session["admin"]:
-            return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        if "username" not in request.session or "user_id" not in request.session:
+            return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+        else:
+            if not request.session["admin"]:
+                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     return await call_next(request)
 

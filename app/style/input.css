@@ -2,29 +2,48 @@
 
 @layer base {
   :root {
-    /* Spaceduck theme colors */
-    --base00: #16172d;
-    --base01: #1b1c36;
-    --base02: #30365F;
-    --base03: #686f9a;
-    --base04: #818596;
-    --base05: #ecf0c1;
-    --base06: #c1c3cc;
-    --base07: #ffffff;
-    --base08: #e33400;
-    --base09: #e39400;
-    --base0A: #f2ce00;
-    --base0B: #5ccc96;
-    --base0C: #00a3cc;
-    --base0D: #7a5ccc;
-    --base0E: #b3a1e6;
-    --base0F: #ce6f8f;
+    /* Spaceduck (Light Mode) */
+      --brand-accent: #7a5ccc;
+      --brand-accent-hover: #5d42a7;
+      --brand-text-required: #d93025;
+      --brand-success: #1e8e3e;
+
+      --bg-primary: #f3f4f6;
+      --bg-secondary: #ffffff;
+      --border-primary: #d1d5db;
+      --border-secondary: #9ca3af;
+      --text-primary: #111827;
+      --text-secondary: #374151;
+      --text-muted: #4b5563;
+      --text-placeholder: #9ca3af;
+    }
+
+  .dark {
+    /* Spaceduck (Dark Mode) */
+    --brand-accent: #7a5ccc;
+    --brand-accent-hover: #b3a1e6;
+    --brand-text-required: #e33400;
+    --brand-success: #5ccc96;
+
+    --bg-primary: #16172d;
+    --bg-secondary: #1b1c36;
+    --border-primary: #30365F;
+    --border-secondary: #686f9a;
+    --text-primary: #ffffff;
+    --text-secondary: #c1c3cc;
+    --text-muted: #ecf0c1;
+    --text-placeholder: #686f9a;
   }
+  
 
   body {
-    @apply bg-[var(--base00)];
+    @apply bg-[var(--bg-primary)] transition-colors duration-300;
   }
 }
+
+/* --- NEW: Custom 'light' Variant --- */
+/* This tells Tailwind to create 'light:' variants that apply when a .light class is on a parent */
+@custom-variant light (&:where(.light *));
 
 @layer components {
   /* Page container - centers the card */
@@ -32,14 +51,16 @@
     @apply min-h-screen flex flex-col items-center justify-center p-4;
   }
 
-  /* The card component */
+  /* The card component with light/dark variants */
   .form-card {
-    @apply w-full max-w-lg bg-[var(--base01)] p-8 sm:p-10 border border-[var(--base02)] rounded-2xl shadow-2xl;
+    @apply w-full max-w-lg p-8 sm:p-10 rounded-2xl shadow-2xl transition-colors duration-300;
+    @apply bg-[var(--bg-secondary)] border border-[var(--border-primary)];
   }
 
   /* Centered heading for the card */
   .form-heading {
-    @apply text-2xl font-bold text-center text-[var(--base07)] mb-8;
+    @apply text-2xl font-bold text-center mb-8;
+    @apply text-[var(--text-primary)];
   }
 
   /* Vertical stack for form elements */
@@ -54,20 +75,21 @@
 
   /* Form label styling */
   .form-label {
-    @apply mb-1.5 text-sm font-medium text-[var(--base05)];
+    @apply mb-1.5 text-sm font-medium;
+    @apply text-[var(--text-muted)];
   }
 
   .form-label.required::after {
     content: ' *';
-    color: var(--base08);
+    @apply text-[var(--brand-text-required)];
   }
 
   /* Unified styling for inputs, selects, and textareas */
   .form-input {
-    @apply block w-full px-4 py-2.5 bg-[var(--base01)] border border-[var(--base02)] rounded-lg;
-    @apply text-[var(--base06)] placeholder:text-[var(--base03)];
-    @apply transition-colors duration-200 ease-in-out;
-    @apply focus:outline-none focus:ring-2 focus:ring-[var(--base0D)] focus:border-[var(--base0D)];
+    @apply block w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ease-in-out;
+    @apply bg-[var(--bg-secondary)] border border-[var(--border-primary)];
+    @apply text-[var(--text-secondary)] placeholder:text-[var(--text-placeholder)];
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--brand-accent)] focus:border-[var(--brand-accent)];
   }
 
   /* Container for form action buttons */
@@ -78,41 +100,45 @@
   /* Styling for the form error message */
   .form-error {
     @apply flex items-center gap-x-3 p-4 mt-2 rounded-lg text-sm;
-    @apply bg-[var(--base08)]/10 text-[var(--base08)];
-    @apply border-l-4 border-[var(--base08)];
+    @apply bg-[var(--brand-text-required)]/10 text-[var(--brand-text-required)];
+    @apply border-l-4 border-[var(--brand-text-required)];
   }
 
   /* Styling for the form success message */
   .form-success {
     @apply flex items-center gap-x-3 p-4 mt-2 rounded-lg text-sm;
-    @apply bg-[var(--base0B)]/10 text-[var(--base0B)];
-    @apply border-l-4 border-[var(--base0B)];
+    @apply bg-[var(--brand-success)]/10 text-[var(--brand-success)];
+    @apply border-l-4 border-[var(--brand-success)];
   }
 
   /* Base button styling */
   .btn {
     @apply inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold;
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--base00)];
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    @apply focus:ring-offset-[var(--bg-primary)]; /* Ring offset should match the body background */
     @apply transition-all duration-200 ease-in-out;
   }
 
   /* Primary action button (Submit) */
   .btn-primary {
-    @apply bg-[var(--base0D)] text-[var(--base07)];
-    @apply hover:bg-[var(--base0E)];
-    @apply focus:ring-[var(--base0E)];
+    @apply text-[var(--bg-secondary)]; /* Text is now secondary background (white/black) */
+    @apply bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)];
+    @apply focus:ring-[var(--brand-accent-hover)];
   }
 
   /* Secondary action button (Reset) */
   .btn-secondary {
-    @apply bg-transparent text-[var(--base05)] border border-[var(--base02)];
-    @apply hover:bg-[var(--base02)] hover:text-[var(--base07)];
-    @apply focus:ring-[var(--base03)];
+    @apply bg-transparent border;
+    @apply text-[var(--text-muted)] border-[var(--border-primary)];
+    @apply hover:bg-[var(--border-primary)] hover:text-[var(--text-primary)];
+    @apply focus:ring-[var(--border-secondary)];
   }
 
-  /* Styling for the JSON <pre> code block */
+  /* Styling for the JSON code block */
   .json-code-block {
-    @apply p-4 mt-4 bg-[var(--base02)] border border-[var(--base03)] rounded-lg;
-    @apply font-mono text-sm text-[var(--base05)] whitespace-pre-wrap break-all;
+    @apply p-4 mt-4 rounded-lg;
+    @apply font-mono text-sm whitespace-pre-wrap break-all;
+    @apply bg-[var(--border-primary)]/40 border border-[var(--border-primary)];
+    @apply text-[var(--text-muted)];
   }
 }
