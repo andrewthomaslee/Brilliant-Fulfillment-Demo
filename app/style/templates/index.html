@@ -15,6 +15,9 @@
         <!-- Right Side: Actions -->
         <div class="banner-actions">
             {% if request.session.get('admin') == True %}
+            <button class="btn-header-admin"
+            data-on-click="alert('user_id={{ request.session.get('user_id') }} ; admin={{ request.session.get('admin') }} ; username={{ request.session.get('username') }} ; active={{ request.session.get('active') }} ; missing_machines={{ request.session.get('missing_machines') }}')"
+            >DEBUG</button>
             <a href="/admin" class="btn-header-admin">Admin Panel</a>
             {% endif %}
             
@@ -35,6 +38,10 @@
 
 <!-- Your main page content goes here -->
 <main class="main-content">
-    <div id="packer_check_out"></div>
+    {% if request.session.get('active') == False %}
+    <div id="packer_check_out" data-on-load="@get('/packer/check_out/')"></div>
+    {% else %}
+    <div id="packer_check_out" data-on-load="@get('/packer/check_in/')"></div>
+    {% endif %}
 </main>
 {% endblock %}

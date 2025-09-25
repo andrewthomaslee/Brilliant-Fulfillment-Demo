@@ -62,13 +62,29 @@ async def get_login(request: Request) -> _TemplateResponse:
 
 @app.post("/login", response_model=None)
 async def post_login(
-    request: Request, username: str = Form(...), password: str = Form(...)
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    kv: valkey.Valkey = Depends(get_valkey),
 ) -> RedirectResponse | _TemplateResponse:
     user: User | None = await User.find_one(User.name == username, User.password == password)
     if user is not None:
         request.session["username"] = user.name
         request.session["admin"] = user.admin
         request.session["user_id"] = str(user.id)
+
+        active: bool = False
+        try:
+            checked_out = await kv.get(f"users:{request['user_id']}")
+            if checked_out is not None:
+                active = True
+            else:
+                active = False
+        except Exception as e:
+            logger.debug(f"Error fetching kv on root/ : {e}")
+            pass
+        request.session["active"] = active
+
         logger.info(f"User Login at {datetime.now().isoformat()}: `{user}`")
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
@@ -88,19 +104,8 @@ async def logout(request: Request) -> RedirectResponse:
 @app.get("/", response_class=HTMLResponse)
 async def read_index(
     request: Request,
-    kv: valkey.Valkey = Depends(get_valkey),
 ) -> _TemplateResponse:
-    try:
-        checked_out = await kv.get(f"users:{request['user_id']}")
-        if checked_out is not None:
-            active = True
-        else:
-            active = False
-    except Exception as e:
-        logger.error(f"Error fetching kv on root/ : {e}")
-        pass
-
-    return templates.TemplateResponse("index.html", {"request": request, "active": active})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/favicon.ico")

@@ -7,9 +7,11 @@
 
     <!-- Machine Info Display -->
     <div class="machine-info">
-        <div class="machine-name-display">
-            <!-- Data will be bound here, e.g., using data-bind -->
-            Machine Name
+        <div class="machine-name-display"
+        data-on-load="@get('/packer/check_out/get_machine/')"
+        data-bind="prompt_machine_name"
+        >
+            
         </div>
         <button class="btn-header-admin">Missing?</button>
     </div>

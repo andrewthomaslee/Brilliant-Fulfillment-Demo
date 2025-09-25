@@ -38,7 +38,7 @@ async def check_out_form(request: Request) -> DatastarResponse:
     html_content: str = template.render({"request": request, "tasks": Task})
     return DatastarResponse(
         [
-            SSE.patch_elements(html_content, use_view_transitions=True, mode=ElementPatchMode.REPLACE),
+            SSE.patch_elements(html_content, mode=ElementPatchMode.REPLACE),
         ]
     )
 
@@ -128,9 +128,7 @@ async def check_out(request: Request, prompt_check_out: PromptCheckOut, kv: Valk
 async def check_in_form(request: Request) -> DatastarResponse:
     template: Template = templates.get_template("check_in.html")
     html_content: str = template.render({"request": request})
-    return DatastarResponse(
-        [SSE.patch_elements(html_content, use_view_transitions=True, mode=ElementPatchMode.REPLACE)]
-    )
+    return DatastarResponse([SSE.patch_elements(html_content, mode=ElementPatchMode.REPLACE)])
 
 
 @router.post("/check_in/", status_code=status.HTTP_201_CREATED)
