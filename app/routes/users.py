@@ -38,7 +38,7 @@ router: APIRouter = APIRouter(
 
 
 # ------------------HTML-Routes-------------------#
-@router.get("/form/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
 async def read_index(
     request: Request,
     user_info: tuple[str, str, bool] = Depends(get_current_user),
@@ -47,7 +47,7 @@ async def read_index(
 
 
 # -------------------User-Routes-------------------#
-@router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post("/create/", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user_request: UserCreate) -> User:
     try:
         user = User(**user_request.model_dump())
@@ -57,7 +57,7 @@ async def create_user(user_request: UserCreate) -> User:
     return user
 
 
-@router.get("/", response_model=list[User])
+@router.get("/get_all/", response_model=list[User])
 async def get_users() -> list[User]:
     try:
         users: list[User] = await User.find_all().to_list()
@@ -112,7 +112,7 @@ async def get_users_by_name(user_name: Annotated[str, Query(min_length=1)]) -> l
     return users
 
 
-@router.get("/{user_id}", response_model=User)
+@router.get("/by_id/{user_id}", response_model=User)
 async def get_user(user_id: str) -> User:
     try:
         user: User = await validate_user(await User.get(user_id))
@@ -121,7 +121,7 @@ async def get_user(user_id: str) -> User:
     return user
 
 
-@router.put("/{user_id}", response_model=User, status_code=status.HTTP_202_ACCEPTED)
+@router.put("/by_id/{user_id}", response_model=User, status_code=status.HTTP_202_ACCEPTED)
 async def update_user(user_id: str, user_request: UserUpdate) -> User:
     try:
         user: User = await validate_user(await User.get(user_id))
@@ -132,7 +132,7 @@ async def update_user(user_id: str, user_request: UserUpdate) -> User:
     return user
 
 
-@router.delete("/{user_id}", status_code=status.HTTP_202_ACCEPTED)
+@router.delete("/by_id/{user_id}", status_code=status.HTTP_202_ACCEPTED)
 async def delete_user(user_id: str) -> str:
     try:
         user: User = await validate_user(await User.get(user_id))

@@ -29,9 +29,9 @@ class UserQuery(BaseModel):
 
 
 class UserCreate(BaseModel):
-    name: str = Field(min_length=1, alias="usercreate_name")
-    password: str = Field(min_length=1, alias="usercreate_password")
-    admin: bool = Field(alias="usercreate_admin")
+    name: str = Field(min_length=1, alias="user_create_name")
+    password: str = Field(min_length=1, alias="user_create_password")
+    admin: bool = Field(alias="user_create_admin")
 
 
 class UserUpdate(BaseModel):

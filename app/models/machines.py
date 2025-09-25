@@ -28,9 +28,9 @@ class MachineQuery(BaseModel):
 
 
 class MachineCreate(BaseModel):
-    name: str
-    joined_condition: int = Field(ge=0, le=5)
-    special_note: str | None = None
+    name: str = Field(min_length=1, alias="machine_create_name")
+    joined_condition: int = Field(ge=0, le=5, alias="machine_create_joined_condition")
+    special_note: str | None = Field(alias="machine_create_special_note")
 
 
 class MachineUpdate(BaseModel):
