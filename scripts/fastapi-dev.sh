@@ -57,8 +57,8 @@ fi
 docker pull valkey/valkey:9.0
 docker pull mongo:8.0.13
 
-tmux new-session -d -s $SESSION_NAME -n "💨_Tailwind" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./app/style/input.css -o ./app/style/output.css --watch" C-m
+tmux new-session -d -s $SESSION_NAME -n "💨_Tailwind" -c "$REPO_ROOT/app"
+tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./style/input.css -o ./style/output.css --watch" C-m
 
 tmux new-window -t $SESSION_NAME -n "🪵_Lazydocker" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:1 "lazydocker" C-m

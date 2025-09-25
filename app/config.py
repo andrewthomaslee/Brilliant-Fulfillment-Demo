@@ -1,8 +1,12 @@
 from pathlib import Path
 
+from fastapi.templating import Jinja2Templates
 from pydantic_settings import BaseSettings
 
 BASE_DIR: Path = Path(__file__).parent
+
+# Create Jinja2 templates
+templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "templates")
 
 
 class ConfigSettings(BaseSettings):

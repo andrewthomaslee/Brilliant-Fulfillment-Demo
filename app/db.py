@@ -41,17 +41,17 @@ async def init_db() -> None:
 
 # ------------Fake Data-------------#
 async def create_sudo_user() -> None:
-    sudo_user: User | None = await User.find_one(User.name == "sudo", User.admin == True, User.password == "root")
+    sudo_user: User | None = await User.find_one(User.name == "sudo", User.admin == True, User.password == "sudo")
     if sudo_user is None:
-        result = await User(name="sudo", password="root", admin=True).save()
-        logger.info(f"Created sudo user: {result}")
+        result = await User(name="sudo", password="sudo", admin=True).save()
+        logger.info("Created sudo user")
 
 
 async def create_plain_user() -> None:
-    plain_user: User | None = await User.find_one(User.name == "user", User.admin == False, User.password == "plain")
+    plain_user: User | None = await User.find_one(User.name == "user", User.admin == False, User.password == "user")
     if plain_user is None:
-        result = await User(name="user", password="plain", admin=False).save()
-        logger.info(f"Created plain user: {result}")
+        result = await User(name="user", password="user", admin=False).save()
+        logger.info("Created plain user")
 
 
 adjectives: list[str] = [
@@ -124,7 +124,7 @@ nouns: list[str] = [
 async def generate_machine_name() -> str:
     adjective: str = random.choice(adjectives)
     noun: str = random.choice(nouns)
-    return f"{noun}-{adjective}"
+    return f"{adjective}-{noun}"
 
 
 async def create_fake_machines() -> None:
@@ -133,12 +133,14 @@ async def create_fake_machines() -> None:
         return None
     fake_machines: list[Machine] = [
         Machine(
-            name=generate_machine_name(),
-            joined_condition=random.randint(0, 2),
+            name=await generate_machine_name(),
+            joined_condition=random.randint(0, 5),
             special_note=random.choice(
                 [
                     "What a great machine!",
                     "With the Frizz? No way!",
+                    "I'm a machine!",
+                    None,
                     None,
                 ]
             ),
@@ -153,7 +155,7 @@ async def create_fake_machines() -> None:
 async def generate_user_name() -> str:
     adjective: str = random.choice(adjectives)
     noun: str = random.choice(nouns)
-    return f"{noun.title()} {adjective.title()}"
+    return f"{adjective.title()} {noun.title()}"
 
 
 async def create_fake_users() -> None:
@@ -163,12 +165,12 @@ async def create_fake_users() -> None:
 
     fake_users: list[User] = [
         User(
-            name=generate_user_name(),
+            name=await generate_user_name(),
             password="password",
             admin=random.random() < 0.25,
             joined_time=datetime.now() - timedelta(days=random.randint(0, 365)),
         )
-        for _ in range(20)
+        for _ in range(18)
     ]
     await User.insert_many(fake_users)
     logger.info(f"Created {len(fake_users)} fake users")

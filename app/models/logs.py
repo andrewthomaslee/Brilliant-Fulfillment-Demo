@@ -1,5 +1,5 @@
 # Standard Imports
-from typing import Annotated
+from typing import Annotated, Literal
 from datetime import datetime
 from enum import StrEnum
 
@@ -33,8 +33,8 @@ class Prompt(BaseModel):
 
 class Log(Document):
     ts: datetime = Field(default_factory=current_time)
-    user: Annotated[Link[User], AfterValidator(check_document_exists)]
-    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)]
+    user: Link[User]
+    machine: Link[Machine]
     active: bool
     prompt: Prompt
 
@@ -47,26 +47,29 @@ class Log(Document):
 
 
 class LogQuery(BaseModel):
-    gte: bool | None = Field(
-        default=True,
-        description="If True, `ts` is filtered as greater than or equal to. If False, values are filtered as less than or equal to.",
-    )
+    operator: Literal["gte", "lte", "eq", "ne", "lt", "gt"] = Field(default="eq")
     ts: datetime | None = None
-    user: Annotated[Link[User], AfterValidator(check_document_exists)] | None = None
-    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)] | None = None
+    user: Link[User] | None = None
+    machine: Link[Machine] | None = None
     active: bool | None = None
     prompt: Prompt | None = None
 
 
+class LogByDate(BaseModel):
+    ascending: bool = Field(default=True)
+    start_date: datetime
+    end_date: datetime
+
+
 class LogCreate(BaseModel):
-    user: Annotated[Link[User], AfterValidator(check_document_exists)]
-    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)]
+    user: Link[User]
+    machine: Link[Machine]
     active: bool
     prompt: Prompt
 
 
 class LogUpdate(BaseModel):
-    user: Annotated[Link[User], AfterValidator(check_document_exists)] | None = None
-    machine: Annotated[Link[Machine], AfterValidator(check_document_exists)] | None = None
+    user: Link[User] | None = None
+    machine: Link[Machine] | None = None
     active: bool | None = None
     prompt: Prompt | None = None

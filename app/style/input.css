@@ -22,100 +22,97 @@
   }
 
   body {
-    background: var(--base00);
-    overflow: hidden;
+    @apply bg-[var(--base00)];
   }
 }
 
-@layer utilities {
-  /* Animated background particles */
-  .particle {
-    position: absolute;
-    background: radial-gradient(circle, var(--base0E) 0%, transparent 70%);
-    border-radius: 50%;
-    opacity: 0.1;
-    animation: float 20s infinite ease-in-out;
+@layer components {
+  /* Page container - centers the card */
+  .form-container {
+    @apply min-h-screen flex flex-col items-center justify-center p-4;
   }
 
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px) translateX(0px) scale(1);
-    }
-    33% {
-      transform: translateY(-30px) translateX(20px) scale(1.1);
-    }
-    66% {
-      transform: translateY(20px) translateX(-10px) scale(0.9);
-    }
+  /* The card component */
+  .form-card {
+    @apply w-full max-w-lg bg-[var(--base01)] p-8 sm:p-10 border border-[var(--base02)] rounded-2xl shadow-2xl;
   }
 
-  /* Glassmorphism card */
-  .glass-card {
-    background: rgba(27, 28, 54, 0.3);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(179, 161, 230, 0.2);
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Centered heading for the card */
+  .form-heading {
+    @apply text-2xl font-bold text-center text-[var(--base07)] mb-8;
   }
 
-  /* Soft glow text */
-  .glow-text {
-    text-shadow: 0 0 20px rgba(179, 161, 230, 0.5);
+  /* Vertical stack for form elements */
+  .form-stack {
+    @apply flex flex-col gap-y-5;
   }
 
-  /* Stylish buttons */
-  .glass-button {
-    background: rgba(122, 92, 204, 0.2);
-    border: 1px solid rgba(179, 161, 230, 0.3);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+  /* Container for individual form fields */
+  .form-group {
+    @apply flex flex-col;
   }
 
-  .glass-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s;
+  /* Form label styling */
+  .form-label {
+    @apply mb-1.5 text-sm font-medium text-[var(--base05)];
   }
 
-  .glass-button:hover::before {
-    left: 100%;
+  .form-label.required::after {
+    content: ' *';
+    color: var(--base08);
   }
 
-  .glass-button:hover {
-    background: rgba(122, 92, 204, 0.3);
-    border-color: rgba(179, 161, 230, 0.5);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(122, 92, 204, 0.3);
+  /* Unified styling for inputs, selects, and textareas */
+  .form-input {
+    @apply block w-full px-4 py-2.5 bg-[var(--base01)] border border-[var(--base02)] rounded-lg;
+    @apply text-[var(--base06)] placeholder:text-[var(--base03)];
+    @apply transition-colors duration-200 ease-in-out;
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--base0D)] focus:border-[var(--base0D)];
   }
 
-  /* Star field */
-  .stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+  /* Container for form action buttons */
+  .form-actions {
+    @apply flex justify-end items-center gap-4 pt-4;
   }
 
-  .star {
-    position: absolute;
-    background: var(--base0E);
-    border-radius: 50%;
-    opacity: 0.3;
-    animation: twinkle 3s infinite ease-in-out;
+  /* Styling for the form error message */
+  .form-error {
+    @apply flex items-center gap-x-3 p-4 mt-2 rounded-lg text-sm;
+    @apply bg-[var(--base08)]/10 text-[var(--base08)];
+    @apply border-l-4 border-[var(--base08)];
   }
 
-  @keyframes twinkle {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
+  /* Styling for the form success message */
+  .form-success {
+    @apply flex items-center gap-x-3 p-4 mt-2 rounded-lg text-sm;
+    @apply bg-[var(--base0B)]/10 text-[var(--base0B)];
+    @apply border-l-4 border-[var(--base0B)];
+  }
+
+  /* Base button styling */
+  .btn {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--base00)];
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  /* Primary action button (Submit) */
+  .btn-primary {
+    @apply bg-[var(--base0D)] text-[var(--base07)];
+    @apply hover:bg-[var(--base0E)];
+    @apply focus:ring-[var(--base0E)];
+  }
+
+  /* Secondary action button (Reset) */
+  .btn-secondary {
+    @apply bg-transparent text-[var(--base05)] border border-[var(--base02)];
+    @apply hover:bg-[var(--base02)] hover:text-[var(--base07)];
+    @apply focus:ring-[var(--base03)];
+  }
+
+  /* Styling for the JSON <pre> code block */
+  .json-code-block {
+    @apply p-4 mt-4 bg-[var(--base02)] border border-[var(--base03)] rounded-lg;
+    @apply font-mono text-sm text-[var(--base05)] whitespace-pre-wrap break-all;
   }
 }

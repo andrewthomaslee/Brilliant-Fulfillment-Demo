@@ -1,4 +1,5 @@
 # Standard Imports
+from typing import Any, Annotated, Literal
 from datetime import datetime
 
 # Third Party Imports
@@ -20,10 +21,7 @@ class Machine(Document):
 
 
 class MachineQuery(BaseModel):
-    gte: bool | None = Field(
-        default=True,
-        description="If True, `joined_time` and `joined_condition` are filtered as greater than or equal to. If False, values are filtered as less than or equal to.",
-    )
+    operator: Literal["gte", "lte", "eq", "ne", "lt", "gt"] = Field(default="eq")
     joined_time: datetime | None = Field(default=None)
     name: str | None = Field(default=None, min_length=1)
     joined_condition: int | None = Field(default=None, ge=0, le=5)

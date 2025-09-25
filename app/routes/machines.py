@@ -5,12 +5,15 @@ from datetime import datetime
 # Third Party Imports
 from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse
+from starlette.templating import _TemplateResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
-from beanie.operators import Set, RegEx, GTE, LTE
+from beanie.operators import Set, RegEx, GTE, LTE, Eq, NE, LT, GT
 
 # My Imports
+from ..config import templates
+from ..utils import get_current_user
 from ..models import (
     Machine,
     MachineQuery,
@@ -33,6 +36,15 @@ router: APIRouter = APIRouter(
 )
 
 
+# ------------------HTML-Routes-------------------#
+@router.get("/form/", response_class=HTMLResponse)
+async def read_index(
+    request: Request,
+    user_info: tuple[str, str, bool] = Depends(get_current_user),
+) -> _TemplateResponse:
+    return templates.TemplateResponse("create_machine.html", {"request": request, "user_info": user_info})
+
+
 # -------------------Machine-Routes-------------------#
 @router.post("/", response_model=Machine, status_code=status.HTTP_201_CREATED)
 async def create_machine(machine_request: MachineCreate) -> Machine:
@@ -40,7 +52,7 @@ async def create_machine(machine_request: MachineCreate) -> Machine:
         machine = Machine(**machine_request.model_dump())
         await machine.create()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machine
 
 
@@ -49,15 +61,29 @@ async def get_machines() -> list[Machine]:
     try:
         machines: list[Machine] = await Machine.find_all().to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machines
 
 
 @router.get("/query/", response_model=list[Machine])
 async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> list[Machine]:
-    query_params: list[GTE | LTE | RegEx] = []
+    query_params: list[GTE | LTE | RegEx | Eq | NE | LT | GT] = []
     try:
-        operator: type[GTE] | type[LTE] = GTE if machine_query.gte else LTE
+        operator: type[GTE] | type[LTE] | type[Eq] | type[NE] | type[LT] | type[GT] = Eq
+        match machine_query.operator:
+            case "gte":
+                operator = GTE
+            case "lte":
+                operator = LTE
+            case "eq":
+                operator = Eq
+            case "ne":
+                operator = NE
+            case "lt":
+                operator = LT
+            case "gt":
+                operator = GT
+
         query_params.extend(
             [operator(k, v) for k, v in machine_query.model_dump(exclude_unset=True).items() if "joined" in k]
         )
@@ -66,7 +92,7 @@ async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> lis
 
         machines: list[Machine] = await Machine.find(*query_params).to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machines
 
 
@@ -75,7 +101,7 @@ async def get_machines_by_name(machine_name: Annotated[str, Query(min_length=1)]
     try:
         machines: list[Machine] = await Machine.find(RegEx("name", machine_name, "ixsm")).to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machines
 
 
@@ -84,7 +110,7 @@ async def get_machine(machine_id: str) -> Machine:
     try:
         machine: Machine = await validate_machine(await Machine.get(machine_id))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machine
 
 
@@ -95,7 +121,7 @@ async def update_machine(machine_id: str, machine_request: MachineUpdate) -> Mac
         await machine.update(Set(machine_request.model_dump(exclude_unset=True)))
         machine = await validate_machine(await Machine.get(machine_id))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return machine
 
 
@@ -105,5 +131,5 @@ async def delete_machine(machine_id: str) -> str:
         machine: Machine = await validate_machine(await Machine.get(machine_id))
         await machine.delete()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return f"Machine {machine_id} deleted"

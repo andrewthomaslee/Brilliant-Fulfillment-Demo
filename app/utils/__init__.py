@@ -1,4 +1,4 @@
-from .validators import check_document_exists  # noqa: F401
+from .validators import check_document_exists, get_current_user  # noqa: F401
 
 
 import datetime

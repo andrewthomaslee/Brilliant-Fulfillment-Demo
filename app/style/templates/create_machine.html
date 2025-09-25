@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Create Machine{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h1 class="form-heading">Create New Machine</h1>
+
+        <!-- Form now uses a vertical stack -->
+        <form action="/api/machines/" method="POST" class="form-stack">
+
+            <!-- Name Field -->
+            <div class="form-group">
+                <label for="name" class="form-label required">Name</label>
+                <input type="text" id="name" name="name" class="form-input" placeholder="e.g., Forklift-02" required>
+            </div>
+
+            <!-- Joined Condition Selector -->
+            <div class="form-group">
+                <label for="joined_condition" class="form-label required">Joined Condition</label>
+                <select id="joined_condition" name="joined_condition" class="form-input" required>
+                    <option value="5" selected>5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Fair</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Needs Repair</option>
+                    <option value="0">0 - Decommissioned</option>
+                </select>
+            </div>
+
+            <!-- Special Note Field -->
+            <div class="form-group">
+                <label for="special_note" class="form-label">Special Note</label>
+                <textarea id="special_note" name="special_note" class="form-input" rows="4" placeholder="e.g., Hydraulic fluid was recently topped up."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="form-actions">
+                <button type="reset" class="btn btn-secondary">Reset</button>
+                <button type="submit" class="btn btn-primary">Create Machine</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

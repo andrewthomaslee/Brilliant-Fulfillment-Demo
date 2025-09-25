@@ -8,13 +8,16 @@ from fastapi.responses import HTMLResponse
 from datastar_py import ServerSentEventGenerator as SSE
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
-from beanie.operators import Set, GTE, LTE, RegEx, Eq
+from beanie.operators import Set, GTE, LTE, RegEx, Eq, NE, LT, GT
 
 # My Imports
 from ..models import (
+    User,
+    Machine,
     Log,
     LogQuery,
     LogCreate,
+    LogByDate,
 )
 
 
@@ -36,28 +39,56 @@ router: APIRouter = APIRouter(
 @router.post("/", response_model=Log, status_code=status.HTTP_201_CREATED)
 async def create_log(log_request: LogCreate) -> Log:
     try:
+        user: User | None = await log_request.user.fetch()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {log_request.user} not found",
+            )
+
+        machine: Machine | None = await log_request.machine.fetch()
+        if not machine:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Machine with id {log_request.machine} not found",
+            )
+
         log = Log(**log_request.model_dump())
         await log.create()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return log
 
 
 @router.get("/", response_model=list[Log])
-async def get_logs(limit: Annotated[int, Query(default=1000)], ascending: bool = True) -> list[Log]:
+async def get_logs(limit: Annotated[int, Query()] = 1000, ascending: Annotated[bool, Query()] = True) -> list[Log]:
     sort_ts: str = "+ts" if ascending else "-ts"
     try:
         logs: list[Log] = await Log.find_all().limit(limit).sort(sort_ts).to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return logs
 
 
 @router.get("/query/", response_model=list[Log])
 async def query_logs(log_query: Annotated[LogQuery, Query()]) -> list[Log]:
-    query_params: list[LTE | GTE | Eq] = []
+    query_params: list[GTE | LTE | RegEx | Eq | NE | LT | GT] = []
     try:
-        operator: type[GTE] | type[LTE] = GTE if log_query.gte else LTE
+        operator: type[GTE] | type[LTE] | type[Eq] | type[NE] | type[LT] | type[GT] = Eq
+        match log_query.operator:
+            case "gte":
+                operator = GTE
+            case "lte":
+                operator = LTE
+            case "eq":
+                operator = Eq
+            case "ne":
+                operator = NE
+            case "lt":
+                operator = LT
+            case "gt":
+                operator = GT
+
         query_params.append(operator(Log.ts, log_query.ts))
 
         if log_query.user is not None:
@@ -71,7 +102,24 @@ async def query_logs(log_query: Annotated[LogQuery, Query()]) -> list[Log]:
 
         logs: list[Log] = await Log.find(*query_params).to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
+    return logs
+
+
+@router.get("/by_date/", response_model=list[Log])
+async def get_logs_by_date(log_by_date: Annotated[LogByDate, Query()]) -> list[Log]:
+    sort_ts: str = "+ts" if log_by_date.ascending else "-ts"
+    try:
+        logs: list[Log] = (
+            await Log.find(
+                GTE(Log.ts, log_by_date.start_date),
+                LTE(Log.ts, log_by_date.end_date),
+            )
+            .sort(sort_ts)
+            .to_list()
+        )
+    except Exception as e:
+        raise e
     return logs
 
 
@@ -88,7 +136,7 @@ async def get_logs_by_name(
 
         logs: list[Log] = await Log.find(*query_params).to_list()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return logs
 
 
@@ -97,7 +145,7 @@ async def get_log(log_id: str) -> Log:
     try:
         log: Log = await validate_log(await Log.get(log_id))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return log
 
 
@@ -108,7 +156,7 @@ async def update_log(log_id: str, log_request: Log) -> Log:
         await log.update(Set(log_request.model_dump(exclude_unset=True)))
         log = await validate_log(await Log.get(log_id))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return log
 
 
@@ -118,5 +166,5 @@ async def delete_log(log_id: str) -> str:
         log: Log = await validate_log(await Log.get(log_id))
         await log.delete()
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Something went wrong: {e}")
+        raise e
     return f"Log {log_id} deleted"

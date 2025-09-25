@@ -260,6 +260,7 @@
           docker
           docker-compose
           docker-buildx
+          docker-vackup
         ]
         ++ (lib.optionals (system != "aarch64-linux") [mongodb-compass])
         ++ [wrappedTmux];

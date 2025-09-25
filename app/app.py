@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Form, HTTPException, Depends, status, Response
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
@@ -18,7 +17,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from .models import User
 from .routes import api_router
 from .db import init_db, load_fake_data
-from .config import BASE_DIR, CONFIG_SETTINGS
+from .config import BASE_DIR, CONFIG_SETTINGS, templates
+from .utils import get_current_user
 
 
 # ---------------Logging---------------#
@@ -47,22 +47,9 @@ app.mount(
     StaticFiles(directory=BASE_DIR / "style", follow_symlink=True, check_dir=True, html=True),
     name="style",
 )
-# Create Jinja2 templates
-templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "templates")
 
 
 # ----------Auth-Functions-----------#
-def get_current_user(request: Request) -> tuple[str, str, bool]:
-    username: str | None = request.session.get("username")
-    user_id: str | None = request.session.get("user_id")
-    admin: bool | None = request.session.get("admin")
-    if username is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    if user_id is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    if admin is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    return (username, user_id, admin)
 
 
 # ----------Login-Routes-----------#
