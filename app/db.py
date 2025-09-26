@@ -30,14 +30,18 @@ async def init_db() -> None:
 
 # ------------Fake Data-------------#
 async def create_sudo_user() -> None:
-    sudo_user: User | None = await User.find_one(User.name == "sudo", User.admin == True, User.password == "sudo")
+    sudo_user: User | None = await User.find_one(
+        User.name == "sudo", User.admin == True, User.password == "sudo"
+    )
     if sudo_user is None:
         await User(name="sudo", password="sudo", admin=True).save()
         logger.info("Created sudo user")
 
 
 async def create_plain_user() -> None:
-    plain_user: User | None = await User.find_one(User.name == "user", User.admin == False, User.password == "user")
+    plain_user: User | None = await User.find_one(
+        User.name == "user", User.admin == False, User.password == "user"
+    )
     if plain_user is None:
         await User(name="user", password="user", admin=False).save()
         logger.info("Created plain user")

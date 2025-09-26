@@ -79,7 +79,11 @@ async def query_machines(machine_query: Annotated[MachineQuery, Query()]) -> lis
                 operator = GT
 
         query_params.extend(
-            [operator(k, v) for k, v in machine_query.model_dump(exclude_unset=True).items() if "joined" in k]
+            [
+                operator(k, v)
+                for k, v in machine_query.model_dump(exclude_unset=True).items()
+                if "joined" in k
+            ]
         )
         if machine_query.name is not None:
             query_params.append(RegEx("name", machine_query.name, "ixsm"))

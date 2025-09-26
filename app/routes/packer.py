@@ -58,7 +58,8 @@ async def check_out_get_machine(request: Request) -> DatastarResponse:
         )
         print(active_machines)
         machine: Machine | None = await Machine.find_one(
-            NotIn(Machine.name, active_machines), NotIn(Machine.name, request.session["missing_machines"])
+            NotIn(Machine.name, active_machines),
+            NotIn(Machine.name, request.session["missing_machines"]),
         )
         if machine is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine not found")
@@ -72,7 +73,9 @@ async def check_out_get_machine(request: Request) -> DatastarResponse:
 
 
 @router.get("/check_out/report_missing_machine/")
-async def check_out_report_missing_machine(request: Request, missing_machine: MissingMachine) -> None:
+async def check_out_report_missing_machine(
+    request: Request, missing_machine: MissingMachine
+) -> None:
     try:
         if "missing_machines" not in request.session:
             request.session["missing_machines"] = [missing_machine.machine_name]
@@ -88,7 +91,9 @@ async def check_out_report_missing_machine(request: Request, missing_machine: Mi
 @router.post("/check_out/", response_model=LogCreate, status_code=status.HTTP_201_CREATED)
 async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> RedirectResponse:
     try:
-        valid_machine: Machine | None = await Machine.find_one(Machine.name == prompt_check_out.machine_name)
+        valid_machine: Machine | None = await Machine.find_one(
+            Machine.name == prompt_check_out.machine_name
+        )
         if valid_machine is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine not found")
 
@@ -136,19 +141,27 @@ async def check_in_form(request: Request) -> DatastarResponse:
 async def check_in(request: Request, prompt_check_in: PromptCheckIn) -> RedirectResponse:
     try:
         # Sanity check
-        valid_machine: Machine | None = await Machine.find_one(Machine.name == prompt_check_in.machine_name)
+        valid_machine: Machine | None = await Machine.find_one(
+            Machine.name == prompt_check_in.machine_name
+        )
         if valid_machine is None:
             logger.error(f"Machine not found: {prompt_check_in.machine_name}")
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Machine not found")
 
-        activity: ActiveUsers | None = await ActiveUsers.find_one(ActiveUsers.user_id == request["user_id"])
+        activity: ActiveUsers | None = await ActiveUsers.find_one(
+            ActiveUsers.user_id == request["user_id"]
+        )
         if activity is None:
             logger.error(f"Active user not found: {request['user_id']}")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Active user not found")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Active user not found"
+            )
 
         if activity.machine_name != valid_machine.name:
             logger.error(f"Machine name mismatch: {activity.machine_name=} != {valid_machine.name=}")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Machine ID mismatch")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Machine ID mismatch"
+            )
 
         if activity.user_id != request["user_id"]:
             logger.error(f"User ID mismatch: {activity.user_id=} != {request['user_id']=}")

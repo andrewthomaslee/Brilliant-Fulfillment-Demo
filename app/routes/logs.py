@@ -56,7 +56,9 @@ async def create_log(log_request: LogCreate) -> Log:
 
 
 @router.get("/", response_model=list[Log])
-async def get_logs(limit: Annotated[int, Query()] = 1000, ascending: Annotated[bool, Query()] = True) -> list[Log]:
+async def get_logs(
+    limit: Annotated[int, Query()] = 1000, ascending: Annotated[bool, Query()] = True
+) -> list[Log]:
     sort_ts: str = "+ts" if ascending else "-ts"
     try:
         logs: list[Log] = await Log.find_all().limit(limit).sort(sort_ts).to_list()

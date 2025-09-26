@@ -66,7 +66,9 @@ async def post_login(
         request.session["admin"] = user.admin
         request.session["user_id"] = str(user.id)
         request.session["missing_machines"] = list()
-        found_active: ActiveUsers | None = await ActiveUsers.find_one(ActiveUsers.user_id == str(user.id))
+        found_active: ActiveUsers | None = await ActiveUsers.find_one(
+            ActiveUsers.user_id == str(user.id)
+        )
         if found_active is not None:
             request.session["active"] = True
         else:
@@ -76,7 +78,9 @@ async def post_login(
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     logger.warning(f"Failed login attempt for user `{username}` and password `{password}`")
-    return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid credentials"})
+    return templates.TemplateResponse(
+        "login.html", {"request": request, "error": "Invalid credentials"}
+    )
 
 
 @app.get("/logout")
