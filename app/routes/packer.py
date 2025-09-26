@@ -86,7 +86,7 @@ async def check_out_report_missing_machine(request: Request, missing_machine: Mi
 
 
 @router.post("/check_out/", response_model=LogCreate, status_code=status.HTTP_201_CREATED)
-async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> Log:
+async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> RedirectResponse:
     try:
         valid_machine: Machine | None = await Machine.find_one(Machine.name == prompt_check_out.machine_name)
         if valid_machine is None:
@@ -100,7 +100,7 @@ async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> Log:
         )
         log_create: LogCreate = LogCreate(
             user={"id": request["user_id"], "collection": "users"},
-            machine={"id": prompt_check_out.machine_name, "collection": "machines"},
+            machine={"id": valid_machine.id, "collection": "machines"},
             active=True,
             prompt=prompt_data,
         )
@@ -108,7 +108,7 @@ async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> Log:
         create_activity: ActiveUsers = ActiveUsers(
             user_id=request["user_id"],
             username=request["username"],
-            machine={"id": valid_machine.id, "collection": "machines"},
+            machine_name=valid_machine.name,
             task=prompt_check_out.task,
         )
 
@@ -122,7 +122,7 @@ async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> Log:
     logger.info(
         f"Check out successful for user `{request['username']}:{request['user_id']}` with machine `{prompt_check_out.machine_name}`"
     )
-    return result
+    return RedirectResponse(url="/")
 
 
 @router.get("/check_in/")
@@ -133,22 +133,26 @@ async def check_in_form(request: Request) -> DatastarResponse:
 
 
 @router.post("/check_in/", status_code=status.HTTP_201_CREATED)
-async def check_in(request: Request, prompt_check_in: PromptCheckIn) -> Log:
+async def check_in(request: Request, prompt_check_in: PromptCheckIn) -> RedirectResponse:
     try:
         # Sanity check
         valid_machine: Machine | None = await Machine.find_one(Machine.name == prompt_check_in.machine_name)
         if valid_machine is None:
             logger.error(f"Machine not found: {prompt_check_in.machine_name}")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine not found")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Machine not found")
 
         activity: ActiveUsers | None = await ActiveUsers.find_one(ActiveUsers.user_id == request["user_id"])
         if activity is None:
             logger.error(f"Active user not found: {request['user_id']}")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Active user not found")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Active user not found")
 
-        if activity.machine.id != valid_machine.id:
-            logger.error(f"Machine ID mismatch: {activity.machine.id=} != {valid_machine.id=}")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Machine ID mismatch")
+        if activity.machine_name != valid_machine.name:
+            logger.error(f"Machine name mismatch: {activity.machine_name=} != {valid_machine.name=}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Machine ID mismatch")
+
+        if activity.user_id != request["user_id"]:
+            logger.error(f"User ID mismatch: {activity.user_id=} != {request['user_id']=}")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User ID mismatch")
 
         prompt_data: Prompt = Prompt(
             condition=prompt_check_in.condition,
@@ -159,12 +163,12 @@ async def check_in(request: Request, prompt_check_in: PromptCheckIn) -> Log:
 
         create_log = LogCreate(
             user={"id": request["user_id"], "collection": "users"},
-            machine={"id": prompt_check_in.machine_name, "collection": "machines"},
+            machine={"id": valid_machine.id, "collection": "machines"},
             active=False,
             prompt=prompt_data,
         )
 
-        check_in_log: Log = await Log(create_log.model_dump(exclude_unset=True)).create()
+        check_in_log: Log = await Log(**create_log.model_dump(exclude_unset=True)).create()
         await activity.delete()
     except Exception as e:
         logger.error(f"Error during check in: {e}")

@@ -11,8 +11,6 @@ from beanie import Document, Indexed, Link
 # My Imports
 from ..utils import current_time
 from .logs import Task
-from .machines import Machine
-
 
 logging.basicConfig(level=logging.INFO)
 logger: Logger = logging.getLogger(__name__)
@@ -21,8 +19,8 @@ logger: Logger = logging.getLogger(__name__)
 class ActiveUsers(Document):
     ts: datetime = Field(default_factory=current_time)
     user_id: Indexed(str, unique=True)  # pyrefly: ignore
+    machine_name: Indexed(str, unique=True)  # pyrefly: ignore
     username: Indexed(str)  # pyrefly: ignore
-    machine: Indexed(Link[Machine], unique=True)  # pyrefly: ignore
     task: Task
 
     class Settings:
@@ -34,7 +32,7 @@ class ActiveUsersQuery(BaseModel):
     ts: datetime | None = Field(default=None)
     user_id: str | None = Field(default=None, min_length=1)
     username: str | None = Field(default=None, min_length=1)
-    machine: str | None = Field(default=None, min_length=1)
+    machine_name: str | None = Field(default=None, min_length=1)
     task: Task | None = None
 
 
@@ -46,4 +44,4 @@ class ActiveUsersCreate(BaseModel):
 
 
 class ActiveUsersMachinesProjection(BaseModel):
-    machine: Link[Machine] = Field(alias="get_active_machines")
+    machine_name: str = Field(min_length=1, alias="get_active_machines")
