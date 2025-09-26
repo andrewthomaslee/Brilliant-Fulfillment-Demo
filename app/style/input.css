@@ -199,6 +199,11 @@
     @apply hover:bg-[var(--brand-text-required)]/10;
   }
 
+  /* Active state for the admin header button */
+  .btn-header-admin.active {
+    @apply bg-[var(--brand-text-required)]/20 ring-1 ring-offset-1 ring-[var(--brand-text-required)] ring-offset-[var(--bg-secondary)];
+  }
+
   /* === Check Out Elements === */
 
   /* Main container for the Check Out form */
@@ -238,10 +243,14 @@
     @apply focus:ring-offset-[var(--bg-secondary)];
     @apply hover:border-[var(--brand-accent)] hover:bg-[var(--brand-accent)]/10 hover:text-[var(--brand-accent)];
   }
-  /* Optional: Add a class for a selected task button */
+  /* class for a selected task button */
   .btn-task.selected {
       @apply bg-[var(--brand-accent)] text-[var(--bg-secondary)] border-[var(--brand-accent)];
   }
+  /* class for a selected button */
+  /* .active {
+    @apply bg-[var(--brand-accent)] text-[var(--bg-secondary)] border-[var(--brand-accent)];
+  } */
 
   /* Container for a slider and its label */
   .slider-container {
@@ -273,7 +282,7 @@
   /* Wrapper for the main content and sidebar */
   .content-wrapper {
     @apply max-w-7xl mx-auto flex items-start gap-8 px-4 sm:px-6 lg:px-8;
-    @apply pt-28; /* Increased top padding to push content below the banner */
+    @apply pt-8; /* Reduced top padding to push content below the banner */
   }
 
   /* Sticky sidebar card for the debug panel */
@@ -294,5 +303,10 @@
   }
   .session-value {
     @apply text-[var(--text-muted)];
+  }
+
+  /* Disabled state for buttons */
+  .btn.disabled {
+    @apply filter grayscale opacity-50 cursor-not-allowed pointer-events-none;
   }
 }

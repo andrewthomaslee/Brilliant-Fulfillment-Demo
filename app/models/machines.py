@@ -6,10 +6,11 @@ from datetime import datetime
 
 # Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document, Indexed
+from beanie import Document, Indexed, Link, TimeSeriesConfig, Granularity
 
 # My Imports
 from ..utils import current_time
+from .users import User
 
 
 logging.basicConfig(level=logging.INFO)
@@ -47,3 +48,16 @@ class MachineUpdate(BaseModel):
 
 class MissingMachine(BaseModel):
     machine_name: str = Field(min_length=1, alias="prompt_machine_name")
+
+
+class MachineMissingLog(Document):
+    ts: datetime = Field(default_factory=current_time)
+    user: Link[User]
+    machine: Link[Machine]
+
+    class Settings:
+        name = "machine_missing_logs"
+        timeseries = TimeSeriesConfig(
+            time_field="ts",
+            granularity=Granularity.seconds,
+        )

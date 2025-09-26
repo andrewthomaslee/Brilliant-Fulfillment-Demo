@@ -1,5 +1,12 @@
 from .users import User, UserQuery, UserCreate, UserUpdate  # noqa: F401
-from .machines import Machine, MachineQuery, MachineCreate, MachineUpdate, MissingMachine  # noqa: F401
+from .machines import (
+    Machine,  # noqa: F401
+    MachineQuery,  # noqa: F401
+    MachineCreate,  # noqa: F401
+    MachineUpdate,  # noqa: F401
+    MissingMachine,  # noqa: F401
+    MachineMissingLog,  # noqa: F401
+)
 from .logs import (
     Log,  # noqa: F401
     Task,  # noqa: F401

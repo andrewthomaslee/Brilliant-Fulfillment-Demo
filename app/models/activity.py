@@ -44,4 +44,4 @@ class ActiveUsersCreate(BaseModel):
 
 
 class ActiveUsersMachinesProjection(BaseModel):
-    machine_name: str = Field(min_length=1, alias="get_active_machines")
+    machine_name: str

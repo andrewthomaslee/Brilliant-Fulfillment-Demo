@@ -11,11 +11,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
+from datastar_py import ServerSentEventGenerator as SSE
+from datastar_py.fastapi import DatastarResponse, datastar_response
+from datastar_py.consts import ElementPatchMode
+from jinja2 import Template
 
 # My Imports
 from .utils import current_time
 from .models import User, ActiveUsers, Task
-from .routes import api_router, settings_router, packer_router
+from .routes import api_router, settings_router, packer_router, admin_router
 from .db import init_db, load_fake_data
 from .config import BASE_DIR, CONFIG_SETTINGS, templates
 
@@ -89,7 +93,7 @@ async def logout(request: Request) -> RedirectResponse:
     username: str | None = request.session.get("username")
     request.session.clear()
     logger.info(f"User {username} logged out")
-    return RedirectResponse(url="/login")
+    return RedirectResponse(url="/login", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 # ---------Default-Routes---------#
@@ -127,6 +131,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> _Templ
 app.include_router(api_router)
 app.include_router(settings_router)
 app.include_router(packer_router)
+app.include_router(admin_router)
 
 
 @app.middleware("http")

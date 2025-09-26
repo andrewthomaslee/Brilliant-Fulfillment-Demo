@@ -9,7 +9,7 @@ from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 # My Imports
-from .models import User, Machine, Log, ActiveUsers
+from .models import User, Machine, Log, ActiveUsers, MachineMissingLog
 from .config import CONFIG_SETTINGS
 
 
@@ -23,7 +23,7 @@ async def init_db() -> None:
     client: AsyncMongoClient = AsyncMongoClient(CONFIG_SETTINGS.DB_URI)
     await init_beanie(
         database=client["admin"],
-        document_models=[User, Machine, Log, ActiveUsers],
+        document_models=[User, Machine, Log, ActiveUsers, MachineMissingLog],
     )
     logger.info("Database initialized")
 
