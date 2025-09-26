@@ -113,7 +113,7 @@ async def check_out(request: Request, prompt_check_out: PromptCheckOut) -> Redir
         )
 
         await create_activity.create()
-        result: Log = await Log(**log_create.model_dump(exclude_unset=True)).create()
+        await Log(**log_create.model_dump(exclude_unset=True)).create()
 
     except Exception as e:
         logger.error(f"Error durining check out: {e}")

@@ -1,19 +1,13 @@
 # Standard Imports
-from typing import Any, Annotated
-from datetime import datetime
+
 
 # Third Party Imports
-from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
-from starlette.templating import _TemplateResponse
+from fastapi import APIRouter, Request
 from datastar_py import ServerSentEventGenerator as SSE
-from datastar_py.consts import ElementPatchMode
-from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
-from mohtml import div  # pyrefly: ignore
+from datastar_py.fastapi import DatastarResponse
 from pydantic import BaseModel
 
 # My Imports
-from ..config import templates
 
 
 class DarkMode(BaseModel):

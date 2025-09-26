@@ -6,7 +6,7 @@ from datetime import datetime
 
 # Third Party Imports
 from pydantic import BaseModel, Field
-from beanie import Document, Indexed, Link
+from beanie import Document, Indexed
 
 # My Imports
 from ..utils import current_time

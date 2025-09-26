@@ -16,7 +16,7 @@ dependencies = [
     "pydantic-settings>=2.10.1",
     "pymongo>=4.15.1",
     "pytz>=2025.2",
-    "uvicorn>=0.36.0",
+    "starlette[full]>=0.48.0",
 ]
 
 [dependency-groups]
@@ -34,7 +34,8 @@ packages = []
 [tool.ruff]
 line-length = 120
 target-version = "py313"
-ignore = ["E712"]
+lint.ignore = ["E712"]
+
 
 
 [tool.pyrefly]
