@@ -65,14 +65,10 @@ if tmux has-session -t $SESSION_NAME 2>/dev/null; then
 fi
 
 docker network create --driver bridge dev-nixfastapi-network 2>/dev/null || true
-docker pull valkey/valkey:9.0
 docker pull mongo:8.0.13
 
 tmux new-session -d -s $SESSION_NAME -n "🪵_Lazydocker" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:0 "lazydocker" C-m
-
-tmux new-window -t $SESSION_NAME -n "🔑_Valkey" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:1 "docker run --rm --network dev-nixfastapi-network -v ./data/valkey:/data --env VALKEY_EXTRA_FLAGS='--save 60 1 --loglevel debug' --name valkey valkey/valkey:9.0" C-m
 
 tmux new-window -t $SESSION_NAME -n "🥭_MongoDB" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:2 "docker run --rm --network dev-nixfastapi-network -v ./data/mongo:/data/db --name mongo mongo:8.0.13 | jq" C-m

@@ -1,15 +1,5 @@
 services:
 
-  valkey:
-    image: valkey/valkey:9.0
-    restart: unless-stopped
-    networks:
-      - backend
-    volumes:
-      - valkey-data:/data
-    environment:
-      - VALKEY_EXTRA_FLAGS=--save 60 1 --loglevel debug
-
   mongo:
     image: mongo:8.0.13
     restart: unless-stopped
@@ -28,7 +18,6 @@ services:
       - valkey
     environment:
       - DB_URI=mongodb://mongo
-      - KV_URI=valkey://valkey
       - SECRET_KEY=${SECRET_KEY:-should-be-changed}
       - FAKE_DATA=${FAKE_DATA:-False}
     networks:

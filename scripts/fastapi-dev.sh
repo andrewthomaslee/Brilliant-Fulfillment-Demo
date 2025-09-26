@@ -54,7 +54,7 @@ if tmux has-session -t $SESSION_NAME 2>/dev/null; then
     handle_existing_session
 fi
 
-docker pull valkey/valkey:9.0
+
 docker pull mongo:8.0.13
 
 tmux new-session -d -s $SESSION_NAME -n "💨_Tailwind" -c "$REPO_ROOT/app"
@@ -62,9 +62,6 @@ tmux send-keys -t $SESSION_NAME:0 "tailwindcss -i ./style/input.css -o ./style/o
 
 tmux new-window -t $SESSION_NAME -n "🪵_Lazydocker" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:1 "lazydocker" C-m
-
-tmux new-window -t $SESSION_NAME -n "🔑_Valkey" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:2 "docker run --rm -p 6379:6379 -v ./data/valkey:/data --env VALKEY_EXTRA_FLAGS='--save 60 1 --loglevel debug' --name valkey valkey/valkey:9.0" C-m
 
 tmux new-window -t $SESSION_NAME -n "🥭_MongoDB" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:3 "docker run --rm -p 27017:27017 -v ./data/mongo:/data/db --name mongo mongo:8.0.13 | jq" C-m
@@ -76,7 +73,7 @@ tmux new-window -t $SESSION_NAME -n "🌐_Chrome" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:5 "chromium --user-data-dir=/tmp/chrome-dev --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 --remote-debugging-port=9222 http://0.0.0.0:8000" C-m
 
 tmux new-window -t $SESSION_NAME -n "🐍_FastAPI" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:6 "uvicorn app.app:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5 --reload-dir ./app" C-m
+tmux send-keys -t $SESSION_NAME:6 "uvicorn app.app:app --port 8000 --host 0.0.0.0 --reload --timeout-keep-alive 1 --timeout-graceful-shutdown 1 --reload-delay 0.5 --reload-dir ./app --log-level debug" C-m
 
 echo "Tmux created session ✨'$SESSION_NAME'✨"
 tmux attach-session -t $SESSION_NAME

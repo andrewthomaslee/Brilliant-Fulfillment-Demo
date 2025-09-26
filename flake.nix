@@ -252,7 +252,6 @@
           pyrefly
           ruff
           yazi
-          valkey
           lazydocker
           brave
           firefox

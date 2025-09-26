@@ -3,36 +3,18 @@ import logging
 from logging import Logger
 from datetime import datetime, timedelta
 import random
-import asyncio
 
 # Third Party Imports
-import valkey.asyncio as valkey
 from pymongo import AsyncMongoClient
 from beanie import init_beanie
 
 # My Imports
-from .models import User, Machine, Log
+from .models import User, Machine, Log, ActiveUsers
 from .config import CONFIG_SETTINGS
 
 
 logging.basicConfig(level=logging.INFO)
 logger: Logger = logging.getLogger(__name__)
-
-
-async def get_valkey() -> valkey.Valkey:
-    retries: int = 0
-    while True:
-        try:
-            kv: valkey.Valkey = valkey.from_url(CONFIG_SETTINGS.KV_URI)
-            if await kv.ping():
-                logger.info("Valkey connection established")
-                return kv
-        except valkey.ConnectionError:
-            logger.warning(f"Valkey connection failed, retrying... retries {retries}")
-            await asyncio.sleep(1)
-            retries = retries + 1
-            if retries > 30:
-                raise ConnectionError(f"Valkey connection failed after {retries} retries")
 
 
 # ------------Init-Beanie-------------#
@@ -41,7 +23,7 @@ async def init_db() -> None:
     client: AsyncMongoClient = AsyncMongoClient(CONFIG_SETTINGS.DB_URI)
     await init_beanie(
         database=client["admin"],
-        document_models=[User, Machine, Log],
+        document_models=[User, Machine, Log, ActiveUsers],
     )
     logger.info("Database initialized")
 

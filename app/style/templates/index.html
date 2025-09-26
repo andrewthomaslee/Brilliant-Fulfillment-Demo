@@ -15,9 +15,15 @@
         <!-- Right Side: Actions -->
         <div class="banner-actions">
             {% if request.session.get('admin') == True %}
+            <pre style="display: none" class="json-code-block"
+            data-json-signals data-show="$show_signals"></pre>
+            <button class="btn-header-admin"
+            data-signals="{show_signals: false}"
+            data-on-click="$show_signals = !$show_signals"
+            >SIGNALS</button>
             <button class="btn-header-admin"
             data-on-click="alert('user_id={{ request.session.get('user_id') }} ; admin={{ request.session.get('admin') }} ; username={{ request.session.get('username') }} ; active={{ request.session.get('active') }} ; missing_machines={{ request.session.get('missing_machines') }}')"
-            >DEBUG</button>
+            >SESSION</button>
             <a href="/admin" class="btn-header-admin">Admin Panel</a>
             {% endif %}
             

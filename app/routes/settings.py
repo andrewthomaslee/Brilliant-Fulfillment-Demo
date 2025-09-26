@@ -7,6 +7,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException, status, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.templating import _TemplateResponse
 from datastar_py import ServerSentEventGenerator as SSE
+from datastar_py.consts import ElementPatchMode
 from datastar_py.fastapi import datastar_response, read_signals, DatastarResponse
 from mohtml import div  # pyrefly: ignore
 from pydantic import BaseModel
@@ -28,10 +29,16 @@ router: APIRouter = APIRouter(
 
 # -------------------Settings-Routes-------------------#
 @router.get("/dark_mode/", description="Toggle dark mode")
-async def update_dark_mode(request: Request) -> RedirectResponse:
+async def update_dark_mode(request: Request) -> DatastarResponse:
     if "dark_mode" not in request.session:
         request.session["dark_mode"] = True
     elif "dark_mode" in request.session:
         request.session["dark_mode"] = not request.session["dark_mode"]
 
-    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    return DatastarResponse(
+        [
+            SSE.patch_elements(
+                """<body id="base_body" class="{% if request.session.get('dark_mode') %} dark {% endif %} antialiased "></body>""",
+            )
+        ]
+    )

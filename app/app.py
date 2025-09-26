@@ -1,25 +1,24 @@
 # Standard Imports
-from datetime import datetime
 from typing import Callable, Coroutine
 import logging
 from logging import Logger
 from contextlib import asynccontextmanager
 
 # Third Party Imports
-from fastapi import FastAPI, Request, Form, HTTPException, Depends, status, Response
+from fastapi import FastAPI, Request, Form, HTTPException, status, Response
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.templating import _TemplateResponse
 from starlette.middleware.sessions import SessionMiddleware
-from datastar_py import ServerSentEventGenerator as SSE  # noqa: F401
-from datastar_py.fastapi import datastar_response  # noqa: F401
-import valkey.asyncio as valkey
+from datastar_py import ServerSentEventGenerator as SSE
+from datastar_py.fastapi import datastar_response
 
 # My Imports
-from .models import User
+from .utils import current_time
+from .models import User, ActiveUsers
 from .routes import api_router, settings_router, packer_router
-from .db import init_db, load_fake_data, get_valkey
+from .db import init_db, load_fake_data
 from .config import BASE_DIR, CONFIG_SETTINGS, templates
 
 
@@ -51,9 +50,6 @@ app.mount(
 )
 
 
-# ----------Auth-Functions-----------#
-
-
 # ----------Login-Routes-----------#
 @app.get("/login")
 async def get_login(request: Request) -> _TemplateResponse:
@@ -65,27 +61,20 @@ async def post_login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    kv: valkey.Valkey = Depends(get_valkey),
 ) -> RedirectResponse | _TemplateResponse:
     user: User | None = await User.find_one(User.name == username, User.password == password)
     if user is not None:
         request.session["username"] = user.name
         request.session["admin"] = user.admin
         request.session["user_id"] = str(user.id)
+        request.session["missing_machines"] = list()
+        found_active: ActiveUsers | None = await ActiveUsers.find_one(ActiveUsers.user_id == str(user.id))
+        if found_active is not None:
+            request.session["active"] = True
+        else:
+            request.session["active"] = False
 
-        active: bool = False
-        try:
-            checked_out = await kv.get(f"users:{request['user_id']}")
-            if checked_out is not None:
-                active = True
-            else:
-                active = False
-        except Exception as e:
-            logger.debug(f"Error fetching kv on root/ : {e}")
-            pass
-        request.session["active"] = active
-
-        logger.info(f"User Login at {datetime.now().isoformat()}: `{user}`")
+        logger.info(f"User Login at {current_time()}: `{user}`")
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
     logger.warning(f"Failed login attempt for user `{username}` and password `{password}`")
@@ -162,15 +151,14 @@ async def auth_admin_middleware(
     included_paths: list[str] = [
         "/api",
         "/docs",
+        "/admin",
     ]
     if any(request.url.path.startswith(path) for path in included_paths):
-        if "username" not in request.session or "user_id" not in request.session:
-            return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
-        else:
-            if not request.session["admin"]:
-                return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        if request.session.get("admin"):
+            return await call_next(request)
 
-    return await call_next(request)
+    logger.warning(f"User `{request.session['user_id']}` attempted to access admin route")
+    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
 
 
 app.add_middleware(

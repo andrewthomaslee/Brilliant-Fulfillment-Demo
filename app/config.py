@@ -11,7 +11,6 @@ templates: Jinja2Templates = Jinja2Templates(directory=BASE_DIR / "style" / "tem
 
 class ConfigSettings(BaseSettings):
     DB_URI: str = "mongodb://localhost:27017"
-    KV_URI: str = "valkey://localhost:6379"
     SECRET_KEY: str = "should-be-changed"
     FAKE_DATA: bool = True
 
