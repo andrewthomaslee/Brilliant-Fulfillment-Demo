@@ -285,6 +285,7 @@
           export REPO_ROOT=$(git rev-parse --show-toplevel)
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
+          export BROWSER=$(which chromium)
           uv sync --directory $REPO_ROOT
           source $REPO_ROOT/.venv/bin/activate
         '';
@@ -306,6 +307,7 @@
           export REPO_ROOT=$(git rev-parse --show-toplevel)
           export COMPOSE_BAKE=true
           export SELL=$(which bash)
+          export BROWSER=$(which chromium)
           export VIRTUAL_ENV=${venv}
           source ${venv}/bin/activate
           nix run $REPO_ROOT#vscode
