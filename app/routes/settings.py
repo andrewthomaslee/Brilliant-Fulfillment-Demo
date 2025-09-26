@@ -2,9 +2,8 @@
 
 
 # Third Party Imports
-from fastapi import APIRouter, Request
-from datastar_py import ServerSentEventGenerator as SSE
-from datastar_py.fastapi import DatastarResponse
+from fastapi import APIRouter, Request, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 # My Imports
@@ -23,16 +22,10 @@ router: APIRouter = APIRouter(
 
 # -------------------Settings-Routes-------------------#
 @router.get("/dark_mode/", description="Toggle dark mode")
-async def update_dark_mode(request: Request) -> DatastarResponse:
-    if "dark_mode" not in request.session:
+async def update_dark_mode(request: Request) -> RedirectResponse:
+    if request.session.get("dark_mode"):
+        request.session["dark_mode"] = False
+    else:
         request.session["dark_mode"] = True
-    elif "dark_mode" in request.session:
-        request.session["dark_mode"] = not request.session["dark_mode"]
 
-    return DatastarResponse(
-        [
-            SSE.patch_elements(
-                """<body id="base_body" class="{% if request.session.get('dark_mode') %} dark {% endif %} antialiased "></body>""",
-            )
-        ]
-    )
+    return RedirectResponse(url="/", status_code=status.HTTP_307_TEMPORARY_REDIRECT)

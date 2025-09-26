@@ -56,7 +56,6 @@ async def check_out_get_machine(request: Request) -> DatastarResponse:
         active_machines: list[ActiveUsersMachinesProjection] = (
             await ActiveUsers.find_all().project(ActiveUsersMachinesProjection).to_list()
         )
-        print(active_machines)
         machine: Machine | None = await Machine.find_one(
             NotIn(Machine.name, active_machines),
             NotIn(Machine.name, request.session["missing_machines"]),

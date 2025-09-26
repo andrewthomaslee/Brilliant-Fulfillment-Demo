@@ -1,5 +1,5 @@
 # Standard Imports
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, Any
 import logging
 from logging import Logger
 from contextlib import asynccontextmanager
@@ -14,7 +14,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 # My Imports
 from .utils import current_time
-from .models import User, ActiveUsers
+from .models import User, ActiveUsers, Task
 from .routes import api_router, settings_router, packer_router
 from .db import init_db, load_fake_data
 from .config import BASE_DIR, CONFIG_SETTINGS, templates
@@ -62,6 +62,7 @@ async def post_login(
 ) -> RedirectResponse | _TemplateResponse:
     user: User | None = await User.find_one(User.name == username, User.password == password)
     if user is not None:
+        request.session["dark_mode"] = False
         request.session["username"] = user.name
         request.session["admin"] = user.admin
         request.session["user_id"] = str(user.id)
@@ -96,7 +97,10 @@ async def logout(request: Request) -> RedirectResponse:
 async def read_index(
     request: Request,
 ) -> _TemplateResponse:
-    return templates.TemplateResponse("index.html", {"request": request})
+    context: dict[str, Any] = {"request": request}
+    if not request.session["active"]:
+        context["tasks"] = Task
+    return templates.TemplateResponse("index.html", context)
 
 
 @app.get("/favicon.ico")
@@ -142,6 +146,7 @@ async def auth_middleware(
     if "username" not in request.session or "user_id" not in request.session:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
+    request.session["url"] = request.url.path
     return await call_next(request)
 
 
@@ -158,9 +163,11 @@ async def auth_admin_middleware(
     if any(request.url.path.startswith(path) for path in included_paths):
         if request.session.get("admin"):
             return await call_next(request)
-
-    logger.warning(f"User `{request.session['user_id']}` attempted to access admin route")
-    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+        else:
+            logger.warning(f"User `{request.session['user_id']}` attempted to access admin route")
+            return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    else:
+        return await call_next(request)
 
 
 app.add_middleware(
