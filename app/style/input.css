@@ -269,4 +269,30 @@
   .machine-name-input {
     @apply text-center text-2xl font-bold p-4;
   }
+
+  /* Wrapper for the main content and sidebar */
+  .content-wrapper {
+    @apply max-w-7xl mx-auto flex items-start gap-8 px-4 sm:px-6 lg:px-8;
+    @apply pt-28; /* Increased top padding to push content below the banner */
+  }
+
+  /* Sticky sidebar card for the debug panel */
+  .debug-panel-card {
+    @apply sticky top-24 flex-shrink-0 w-80; /* Stays in place, fixed width */
+    @apply p-4 rounded-xl shadow-lg;
+    @apply bg-[var(--bg-secondary)] border border-[var(--border-primary)];
+  }
+
+  /* Main content area that will grow to fill space */
+  .main-content {
+    @apply flex-grow w-full; /* Takes up the remaining space */
+  }
+
+  /* Styling for session keys and values in the debug panel */
+  .session-key {
+    @apply font-semibold text-[var(--text-primary)];
+  }
+  .session-value {
+    @apply text-[var(--text-muted)];
+  }
 }
