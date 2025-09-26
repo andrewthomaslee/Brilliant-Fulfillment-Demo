@@ -74,10 +74,10 @@ tmux new-window -t $SESSION_NAME -n "🥭_MongoDB" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:1 "docker run --rm --network dev-nixfastapi-network -v ./data/mongo:/data/db --name mongo mongo:8.0.13 | jq" C-m
 
 tmux new-window -t $SESSION_NAME -n "📦_Container" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:2 "docker run --rm --network dev-nixfastapi-network -p 7999:7999 --env DB_URI=mongodb://mongo --env KV_URI=valkey://valkey "$IMAGE_TAG"" C-m
+tmux send-keys -t $SESSION_NAME:2 "docker run --rm --network dev-nixfastapi-network -p 7999:7999 --env DB_URI=mongodb://mongo --env FAKE_DATA=True "$IMAGE_TAG"" C-m
 
-tmux new-window -t $SESSION_NAME -n "🦁_Brave" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:3 "brave --user-data-dir=/tmp/brave-dev-container --new-window --incognito http://0.0.0.0:7999" C-m
+tmux new-window -t $SESSION_NAME -n "🌐_Chrome" -c "$REPO_ROOT"
+tmux send-keys -t $SESSION_NAME:3 "chromium --user-data-dir=/tmp/chrome-dev --new-window --incognito --disable-cache --disk-cache-size=0 --media-cache-size=0 --remote-debugging-port=9222 http://0.0.0.0:7999" C-m
 
 echo "Tmux created session ✨'$SESSION_NAME'✨"
 tmux attach-session -t $SESSION_NAME

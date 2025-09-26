@@ -15,11 +15,10 @@ services:
     restart: unless-stopped
     depends_on:
       - mongo
-      - valkey
     environment:
-      - DB_URI=mongodb://mongo
+      - DB_URI=${DB_URI:-mongodb://mongo}
       - SECRET_KEY=${SECRET_KEY:-should-be-changed}
-      - FAKE_DATA=${FAKE_DATA:-False}
+      - FAKE_DATA=${FAKE_DATA:-True}
     networks:
       - backend
     tty: true
@@ -29,7 +28,6 @@ services:
 
 volumes:
   mongo-data:
-  valkey-data:
 
 networks:
   backend:

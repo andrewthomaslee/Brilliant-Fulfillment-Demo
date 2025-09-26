@@ -58,12 +58,8 @@ fi
 tmux new-session -d -s $SESSION_NAME -n "mitmproxy" -c "$REPO_ROOT/data"
 tmux send-keys -t $SESSION_NAME:0 "mitmdump --mode reverse:https://ui.duckdb.org -w hatchling.dump" C-m
 
-sleep 0.5
-
 tmux new-window -t $SESSION_NAME -n "🦆_duckdb-ui" -c "$REPO_ROOT/data"
 tmux send-keys -t $SESSION_NAME:1 "ui_remote_url=http://localhost:8080 duckdb -cmd \"INSTALL ui; LOAD ui;\" -ui -unsigned duck.db" C-m
-
-sleep 0.5
 
 echo "Tmux created session ✨'$SESSION_NAME'✨"
 tmux attach-session -t $SESSION_NAME

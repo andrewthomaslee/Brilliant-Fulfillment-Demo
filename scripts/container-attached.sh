@@ -74,7 +74,7 @@ tmux new-window -t $SESSION_NAME -n "🥭_MongoDB" -c "$REPO_ROOT"
 tmux send-keys -t $SESSION_NAME:1 "docker run --rm --network dev-nixfastapi-network -v ./data/mongo:/data/db --name mongo mongo:8.0.13 | jq" C-m
 
 tmux new-window -t $SESSION_NAME -n "📦_Container" -c "$REPO_ROOT"
-tmux send-keys -t $SESSION_NAME:2 "docker run --rm --network dev-nixfastapi-network -p 7999:7999 --env DB_URI=mongodb://mongo --env KV_URI=valkey://valkey -it "$IMAGE_TAG" sh" C-m
+tmux send-keys -t $SESSION_NAME:2 "docker run --rm --network dev-nixfastapi-network -p 7999:7999 --env DB_URI=mongodb://mongo --env FAKE_DATA=True -it "$IMAGE_TAG" sh" C-m
 
 echo "Tmux created session ✨'$SESSION_NAME'✨"
 tmux attach-session -t $SESSION_NAME
