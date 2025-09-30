@@ -256,14 +256,21 @@
                 name = "bff-start";
                 runtimeInputs = [pkgs.docker];
                 text = ''
-                  docker network create --driver bridge bff-demo-network || true
-                  docker pull mongo:8.0.13
-                  IMAGE_TAG=$(docker load < ${self.packages.${pkgs.system}.bff-demo-container} | grep -o 'bff-demo-container:[^ ]*')
+                  docker stop bff-demo-container || true
+                  docker rm bff-demo-container || true
+                  docker stop bff-demo-mongo || true
+                  docker rm bff-demo-mongo || true
 
-                  docker run -d --rm --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
-                  docker run -d --rm --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
+                  docker network create --driver bridge bff-demo-network || true
+
+                  docker pull mongo:8.0.13
+
+                  IMAGE_ID=$(docker load --quiet < ${self.packages.${pkgs.system}.bff-demo-container})
+
+                  docker run -d --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
+                  docker run -d --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
                     --label "traefik.enable=true" \
-                    --label "traefik.http.routers.bff-demo.rule=Host(`bff-demo.${cfg.domain}`)" \
+                    --label "traefik.http.routers.bff-demo.rule=Host($(bff-demo.${cfg.domain}))" \
                     --label "traefik.http.routers.bff-demo.entrypoints=websecure" \
                     --label "traefik.http.routers.bff-demo.tls=true" \
                     --label "traefik.http.services.bff-demo.loadbalancer.server.port=7999" \
@@ -271,16 +278,20 @@
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.name=sticky_cookie" \
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.secure=true" \
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.httpOnly=true" \
-                  "$IMAGE_TAG"
+                  "$IMAGE_ID"
                 '';
               };
               bff-stop = pkgs.writeShellApplication {
                 name = "bff-stop";
                 runtimeInputs = [pkgs.docker];
                 text = ''
-                  docker network rm bff-demo-network || true
-                  docker stop bff-demo-mongo || true
                   docker stop bff-demo-container || true
+                  docker stop bff-demo-mongo || true
+
+                  docker rm bff-demo-container || true
+                  docker rm bff-demo-mongo || true
+
+                  docker network rm bff-demo-network || true
                 '';
               };
             in {
