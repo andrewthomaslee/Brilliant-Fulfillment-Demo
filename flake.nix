@@ -296,10 +296,12 @@
               };
             in {
               Type = "oneshot";
+              RemainAfterExit = true;
+              TimeoutStartSec = "90s";
+              RestartSec = "30s";
               User = "root";
               Group = "docker";
               Restart = "on-failure";
-              RestartSec = "30s";
               ExecStart = "${bff-start}/bin/bff-start";
               ExecStop = "${bff-stop}/bin/bff-stop";
             };
