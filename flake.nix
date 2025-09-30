@@ -270,7 +270,7 @@
                   docker run -d --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
                   docker run -d --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
                     --label "traefik.enable=true" \
-                    --label "traefik.http.routers.bff-demo.rule=Host($(bff-demo.${cfg.domain}))" \
+                    --label "traefik.http.routers.bff-demo.rule=Host(\`bff-demo.${cfg.domain}\`)" \
                     --label "traefik.http.routers.bff-demo.entrypoints=websecure" \
                     --label "traefik.http.routers.bff-demo.tls=true" \
                     --label "traefik.http.services.bff-demo.loadbalancer.server.port=7999" \
