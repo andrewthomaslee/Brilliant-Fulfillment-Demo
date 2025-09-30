@@ -130,7 +130,7 @@
       venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
       # alpine base docker image
       alpine = pkgs.dockerTools.pullImage {
-        imageName = "alpine:3.22.1";
+        imageName = "alpine";
         imageDigest = "sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1";
         finalImageName = "alpine";
         finalImageTag = "3.22.1";
