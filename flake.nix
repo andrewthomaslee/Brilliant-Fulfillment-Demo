@@ -266,6 +266,7 @@
                   docker pull mongo:8.0.13
 
                   IMAGE_ID=$(docker load --quiet < ${self.packages.${pkgs.system}.bff-demo-container})
+                  docker tag "$IMAGE_ID" bff-demo-service:latest
 
                   docker run -d --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
                   docker run -d --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
@@ -278,7 +279,7 @@
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.name=sticky_cookie" \
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.secure=true" \
                     --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.httpOnly=true" \
-                  "$IMAGE_ID"
+                  bff-demo-service:latest
                 '';
               };
               bff-stop = pkgs.writeShellApplication {
