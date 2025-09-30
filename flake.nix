@@ -24,6 +24,7 @@
   };
 
   outputs = {
+    self,
     nixpkgs,
     uv2nix,
     pyproject-nix,
@@ -121,7 +122,10 @@
     );
   in {
     packages = forAllSystems (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      overlay = final: prev: {
+        inherit (self.packages.${system});
+      };
+      pkgs = nixpkgs.legacyPackages.${system}.extend overlay;
       pythonSet = pythonSets.${system};
       venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
       # alpine base docker image
@@ -221,6 +225,80 @@
         scriptApps // {default = scriptApps.fastapi-dev;}
     );
 
+    nixosModules = {
+      default = {
+        config,
+        lib,
+        pkgs,
+        ...
+      }: let
+        cfg = config.services.bff-demo;
+      in {
+        options = {
+          enable = lib.mkEnableOption "bff-demo";
+          domain = lib.mkOption {
+            type = lib.types.str;
+            default = "localhost";
+          };
+          fake-data = lib.mkOption {
+            type = lib.types.enum ["True" "False"];
+            default = "False";
+          };
+        };
+        config = lib.mkIf cfg.enable {
+          systemd.services.bff-demo = {
+            description = "bff-demo.service";
+            after = ["docker.service"];
+            requires = ["docker.service"];
+            wantedBy = ["multi-user.target"];
+
+            serviceConfig = let
+              bff-start = pkgs.writeShellApplication {
+                name = "bff-start";
+                runtimeInputs = [pkgs.docker];
+                text = ''
+                  docker network create --driver bridge bff-demo-network || true
+                  docker pull mongo:8.0.13
+                  IMAGE_TAG=$(docker load < ${pkgs.container} | grep -o 'bff-demo-container:[^ ]*')
+
+                  docker run -d --rm --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
+                  docker run -d --rm --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
+                    --label "traefik.enable=true" \
+                    --label "traefik.http.routers.bff-demo.rule=Host(`bff-demo.${cfg.domain}`)" \
+                    --label "traefik.http.routers.bff-demo.entrypoints=websecure" \
+                    --label "traefik.http.routers.bff-demo.tls=true" \
+                    --label "traefik.http.services.bff-demo.loadbalancer.server.port=7999" \
+                    --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie=true" \
+                    --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.name=sticky_cookie" \
+                    --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.secure=true" \
+                    --label "traefik.http.services.bff-demo.loadbalancer.sticky.cookie.httpOnly=true" \
+                  "$IMAGE_TAG"
+                '';
+              };
+              bff-stop = pkgs.writeShellApplication {
+                name = "bff-stop";
+                runtimeInputs = [pkgs.docker];
+                text = ''
+                  docker network rm bff-demo-network || true
+                  docker stop bff-demo-mongo || true
+                  docker stop bff-demo-container || true
+                '';
+              };
+            in {
+              Type = "oneshot";
+              User = "root";
+              Group = "docker";
+              Restart = "on-failure";
+              RestartSec = "30s";
+              ExecStart = "${bff-start}/bin/bff-start";
+              ExecStop = "${bff-stop}/bin/bff-stop";
+            };
+          };
+        };
+      };
+    };
+
+    # devShells
     devShells = forAllSystems (system: let
       pkgs = import nixpkgs {
         inherit system;
