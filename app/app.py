@@ -135,6 +135,28 @@ app.include_router(admin_router)
 
 
 @app.middleware("http")
+async def auth_admin_middleware(
+    request: Request,
+    call_next: Callable[[Request], Coroutine[None, None, Response]],
+) -> Response:
+    included_paths: list[str] = [
+        "/api",
+        "/docs",
+        "/admin",
+    ]
+    if any(request.url.path.startswith(path) for path in included_paths):
+        if request.session.get("admin"):
+            return await call_next(request)
+        else:
+            logger.warning(
+                f"User `{request.session.get('user_id')}` attempted to access admin route"
+            )
+            return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    else:
+        return await call_next(request)
+
+
+@app.middleware("http")
 async def auth_middleware(
     request: Request,
     call_next: Callable[[Request], Coroutine[None, None, Response]],
@@ -151,28 +173,7 @@ async def auth_middleware(
     if "username" not in request.session or "user_id" not in request.session:
         return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
 
-    request.session["url"] = request.url.path
     return await call_next(request)
-
-
-@app.middleware("http")
-async def auth_admin_middleware(
-    request: Request,
-    call_next: Callable[[Request], Coroutine[None, None, Response]],
-) -> Response:
-    included_paths: list[str] = [
-        "/api",
-        "/docs",
-        "/admin",
-    ]
-    if any(request.url.path.startswith(path) for path in included_paths):
-        if request.session.get("admin"):
-            return await call_next(request)
-        else:
-            logger.warning(f"User `{request.session['user_id']}` attempted to access admin route")
-            return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-    else:
-        return await call_next(request)
 
 
 app.add_middleware(

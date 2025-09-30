@@ -13,7 +13,22 @@
         </div>
 
         <!-- Right Side: Actions -->
-        <div class="banner-actions">
+        <div class="banner-actions" data-signals="{table: 'activity-logs', follow_page : '0', follow_acsending : true}" >
+            <button class="btn-header"
+                data-class-active="$table === 'activity-logs'"
+                data-on-click="@get('/admin/activity-logs/')"
+            >Activity Logs
+            </button>
+            <button class="btn-header"
+                data-class-active="$table === 'follow-logs'"
+                data-on-click="@get('/admin/follow-logs/')"
+            >Follow Logs
+            </button>
+            <button class="btn-header"
+                data-class-active="$table === 'missing-logs'"
+                data-on-click="@get('/admin/missing-logs/')"
+            >Missing Machines
+            </button>
             <button class="btn-header-admin"
                 data-signals="{show_signals: false}"
                 data-on-click="$show_signals = !$show_signals"
@@ -48,6 +63,51 @@
 
 
     <!-- Main Content Body-->
-    <main class="main-content" id="main-content"></main>
+    <main class="main-content" id="main-content" data-signals="{disable_paging_left: true, disable_paging_right: false}" >
+            
+        <!-- Pager and Sort Controls -->
+        <div class="table-controls" style="display: none;" data-show="$table === 'follow-logs'" >
+            <button class="btn-control"
+            data-attr-disabled="$disable_paging_left"
+                data-on-click="$follow_page -= 1, @get('/admin/follow-logs/')"
+            >
+                - 20
+            </button>
+            <button class="btn-control"
+                data-attr-disabled="$disable_paging_right"
+                data-on-click="$follow_page += 1, @get('/admin/follow-logs/')"
+            >
+                + 20
+            </button>
+            <button class="btn-control"
+                data-on-click="$follow_acsending = !$follow_acsending, @get('/admin/follow-logs/')"
+                data-text="$follow_acsending ? 'Ascending' : 'Descending'">
+            </button>
+        </div>
+
+        <!-- Pager and Sort Controls -->
+        <div class="table-controls" style="display: none;" data-show="$table === 'missing-logs'" >
+            <button class="btn-control"
+            data-attr-disabled="$disable_paging_left"
+                data-on-click="$follow_page -= 1, @get('/admin/missing-logs/')"
+            >
+                - 20
+            </button>
+            <button class="btn-control"
+                data-attr-disabled="$disable_paging_right"
+                data-on-click="$follow_page += 1, @get('/admin/missing-logs/')"
+            >
+                + 20
+            </button>
+            <button class="btn-control"
+                data-on-click="$follow_acsending = !$follow_acsending, @get('/admin/missing-logs/')"
+                data-text="$follow_acsending ? 'Ascending' : 'Descending'">
+            </button>
+        </div>
+
+  
+
+        <div class="table-container" id="table-container" data-on-load="@get('/admin/activity-logs/')"></div>
+    </main>
 </div>
 {% endblock %}
