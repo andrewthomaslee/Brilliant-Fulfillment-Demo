@@ -168,7 +168,7 @@
       };
     in {
       default = bff-demo-package;
-      container = pkgs.dockerTools.buildLayeredImage {
+      bff-demo-container = pkgs.dockerTools.buildLayeredImage {
         name = "bff-demo-container";
         created = "now";
         fromImage = alpine;
@@ -261,7 +261,7 @@
                 text = ''
                   docker network create --driver bridge bff-demo-network || true
                   docker pull mongo:8.0.13
-                  IMAGE_TAG=$(docker load < ${pkgs.container} | grep -o 'bff-demo-container:[^ ]*')
+                  IMAGE_TAG=$(docker load < ${pkgs.bff-demo-container} | grep -o 'bff-demo-container:[^ ]*')
 
                   docker run -d --rm --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
                   docker run -d --rm --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \

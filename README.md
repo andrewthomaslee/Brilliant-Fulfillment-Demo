@@ -46,7 +46,7 @@ nix build
 ```
 ### Build Docker Image
 ```bash
-nix build .#container
+nix build .#bff-demo-container
 ```
 ### Check the flake.nix
 ```bash

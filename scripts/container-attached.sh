@@ -11,7 +11,7 @@ cd $REPO_ROOT
 # 1. Build → 2. Load → 3. Run (with auto-cleanup)
 
 echo "🚀 Building Docker image with Nix..."
-nix build .#container
+nix build .#bff-demo-container
 
 echo "📥 Loading image into Docker..."
 IMAGE_TAG=$(docker load < result | grep -o 'bff-demo-container:[^ ]*')
