@@ -235,14 +235,16 @@
         cfg = config.services.bff-demo;
       in {
         options = {
-          enable = lib.mkEnableOption "bff-demo";
-          domain = lib.mkOption {
-            type = lib.types.str;
-            default = "localhost";
-          };
-          fake-data = lib.mkOption {
-            type = lib.types.enum ["True" "False"];
-            default = "False";
+          services.bff-demo = {
+            enable = lib.mkEnableOption "bff-demo";
+            domain = lib.mkOption {
+              type = lib.types.str;
+              default = "localhost";
+            };
+            fake-data = lib.mkOption {
+              type = lib.types.enum ["True" "False"];
+              default = "False";
+            };
           };
         };
         config = lib.mkIf cfg.enable {
