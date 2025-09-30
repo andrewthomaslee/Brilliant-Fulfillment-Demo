@@ -122,10 +122,7 @@
     );
   in {
     packages = forAllSystems (system: let
-      overlay = final: prev: {
-        inherit (self.packages.${system});
-      };
-      pkgs = nixpkgs.legacyPackages.${system}.extend overlay;
+      pkgs = nixpkgs.legacyPackages.${system};
       pythonSet = pythonSets.${system};
       venv = pythonSet.mkVirtualEnv "bff-demo-venv" workspace.deps.default;
       # alpine base docker image
@@ -261,7 +258,7 @@
                 text = ''
                   docker network create --driver bridge bff-demo-network || true
                   docker pull mongo:8.0.13
-                  IMAGE_TAG=$(docker load < ${pkgs.bff-demo-container} | grep -o 'bff-demo-container:[^ ]*')
+                  IMAGE_TAG=$(docker load < ${self.packages.${pkgs.system}.bff-demo-container} | grep -o 'bff-demo-container:[^ ]*')
 
                   docker run -d --rm --network bff-demo-network -v bff-demo-mongodb:/data/db --name bff-demo-mongo mongo:8.0.13
                   docker run -d --rm --network bff-demo-network --name bff-demo-container --env DB_URI=mongodb://bff-demo-mongo --env FAKE_DATA=${cfg.fake-data} \
