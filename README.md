@@ -53,3 +53,23 @@ nix build .#bff-demo-container
 nix flake check --all-systems
 ```
 This will check the `flake.nix` syntax and that all the dependencies are pinned. Also will run `pyrefly` the Facebook Python type checker, `ruff` the Python linter, and `pytest` the Python test runner.
+
+### Raw Docker Compose
+Run the Demo App with Docker Compose
+```bash
+docker compose up
+```
+
+### Default Users
+#### admin login:
+
+username: `admin`
+
+password: `admin`
+
+
+#### user login:
+
+username: `user`
+
+password: `user`
