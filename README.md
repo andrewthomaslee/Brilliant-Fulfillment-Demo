@@ -1,13 +1,11 @@
 # BFF-Demo
 ### Prerequisites
 - Docker
-- Nix Package Manager (with Flakes)
+- Nix Package Manager with Flakes enabled (Optional)
 
 ### Install Nix CLI
-The quickest way to have a great Nix experience is with [Determinate Systems](https://determinate.systems/blog/determinate-nix-installer/). This one liner will do just that on any supported system:
-```bash
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-```
+The quickest way to have a great Nix experience is with [Determinate Systems](https://determinate.systems/blog/determinate-nix-installer/). 
+
 ## devShell
 The devShell is a Nix environment that contains all the dependencies needed to run the project. It's a great way to ensure that everyone working on the project has the same dependencies and the same versions of those dependencies. ( works best with bash terminal )
 #### See what's available
