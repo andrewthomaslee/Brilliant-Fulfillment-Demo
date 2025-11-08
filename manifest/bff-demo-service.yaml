@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose -f ../docker-compose.prod.yml convert -v
+    kompose.version: 1.37.0 (HEAD)
+  labels:
+    io.kompose.service: bff-demo
+  name: bff-demo
+spec:
+  ports:
+    - name: "7999"
+      port: 7999
+      targetPort: 7999
+  selector:
+    io.kompose.service: bff-demo

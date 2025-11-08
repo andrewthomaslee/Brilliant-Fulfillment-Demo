@@ -2,7 +2,7 @@ services:
 
   mongo:
     image: mongo:8.0.13
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
     volumes:
@@ -11,10 +11,8 @@ services:
       - ${MONGO_PORTS:-27017}:27017
 
   bff-demo:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
+    image: andrewthomaslee/bf-demo:latest
+    restart: always
     depends_on:
       - mongo
     environment:
