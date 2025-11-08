@@ -2,11 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose -f ../docker-compose.prod.yml convert -v
+    kompose.cmd: kompose -f docker-compose.prod.yml convert -o manifest/ -n bff-demo --pvc-request-size 2G
     kompose.version: 1.37.0 (HEAD)
   labels:
     io.kompose.service: mongo
   name: mongo
+  namespace: bff-demo
 spec:
   replicas: 1
   selector:
@@ -17,7 +18,7 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose -f ../docker-compose.prod.yml convert -v
+        kompose.cmd: kompose -f docker-compose.prod.yml convert -o manifest/ -n bff-demo --pvc-request-size 2G
         kompose.version: 1.37.0 (HEAD)
       labels:
         io.kompose.service: mongo
