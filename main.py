@@ -11,4 +11,6 @@ if __name__ == "__main__":
         workers=3,
         timeout_graceful_shutdown=10,
         use_colors=True,
+        proxy_headers=True,
+        forwarded_allow_ips="*",
     )
