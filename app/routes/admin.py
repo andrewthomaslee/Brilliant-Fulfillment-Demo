@@ -98,7 +98,6 @@ async def activity_logs(request: Request) -> DatastarResponse:
 async def follow_logs(request: Request) -> DatastarResponse:
     follow_logs: dict[str, Any] | None = await read_signals(request)
     prev_table: str = "None"
-    print(follow_logs)
     if follow_logs:
         page: int = int(follow_logs.get("follow_page"))  # pyrefly: ignore
         ascending = bool(follow_logs.get("follow_acsending"))
@@ -187,7 +186,6 @@ async def follow_logs(request: Request) -> DatastarResponse:
 @router.get("/missing-logs/")
 async def missing_logs(request: Request) -> DatastarResponse:
     follow_logs: dict[str, Any] | None = await read_signals(request)
-    print(follow_logs)
     if follow_logs:
         page: int = int(follow_logs.get("follow_page"))  # pyrefly: ignore
         ascending = bool(follow_logs.get("follow_acsending"))
