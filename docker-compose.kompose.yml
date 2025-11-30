@@ -9,8 +9,14 @@ services:
       - mongo-data:/data/db
     ports:
       - ${MONGO_PORTS:-27017}:27017
+    labels:
+      kompose.service.healthcheck.liveness.tcp_port: ${MONGO_PORTS:-27017}
+      kompose.volume.storage-class-name: longhorn
+      kompose.volume.type: persistentVolumeClaim
+      kompose.service.type: clusterip
+      kompose.volume.size: 5Gi
 
-  bff-demo:
+  bf-demo:
     image: andrewthomaslee/bf-demo:czvm2yxhq58swbqlsd14bpbcnn14mrxp
     restart: always
     depends_on:
@@ -25,6 +31,12 @@ services:
     stdin_open: true
     ports:
       - ${PORTS:-7999}:7999
+    labels:
+      kompose.security-context.fsgroup: 1000
+      kompose.service.healthcheck.liveness.tcp_port: ${PORTS:-7999}
+      kompose.service.healthcheck.readiness.http_get_port: ${PORTS:-7999}
+      kompose.service.healthcheck.readiness.http_get_path: /health
+      kompose.service.type: clusterip
 
 volumes:
   mongo-data:

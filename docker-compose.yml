@@ -10,7 +10,7 @@ services:
     ports:
       - ${MONGO_PORTS:-27017}:27017
 
-  bff-demo:
+  bf-demo:
     build:
       context: .
       dockerfile: Dockerfile

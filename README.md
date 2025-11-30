@@ -1,4 +1,4 @@
-# BFF-Demo
+# bf-Demo
 ### Prerequisites
 - Docker
 - Nix Package Manager with Flakes enabled (Optional)
@@ -44,7 +44,7 @@ nix build
 ```
 ### Build Docker Image
 ```bash
-nix build .#bff-demo-container
+nix build .#bf-demo-container
 ```
 ### Check the flake.nix
 ```bash
