@@ -17,7 +17,7 @@ services:
       kompose.volume.size: 5Gi
 
   bf-demo:
-    image: andrewthomaslee/bf-demo:czvm2yxhq58swbqlsd14bpbcnn14mrxp
+    image: andrewthomaslee/bf-demo:p9n6bvpdf2r1ghz7k9myk8bdkfws58db
     restart: always
     depends_on:
       - mongo

@@ -38,7 +38,7 @@ spec:
               value: "True"
             - name: SECRET_KEY
               value: should-be-changed
-          image: andrewthomaslee/bf-demo:czvm2yxhq58swbqlsd14bpbcnn14mrxp
+          image: andrewthomaslee/bf-demo:p9n6bvpdf2r1ghz7k9myk8bdkfws58db
           name: bf-demo
           ports:
             - containerPort: 7999
