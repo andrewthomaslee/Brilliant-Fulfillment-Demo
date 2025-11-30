@@ -13,6 +13,7 @@ services:
   bf-demo:
     build:
       context: .
+      network: host
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
