@@ -1,17 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f ../docker-compose.kompose.yml
-    kompose.security-context.fsgroup: "1000"
-    kompose.service.healthcheck.liveness.tcp_port: "7999"
-    kompose.service.healthcheck.readiness.http_get_path: /health
-    kompose.service.healthcheck.readiness.http_get_port: "7999"
-    kompose.service.type: clusterip
-    kompose.version: 1.37.0 (HEAD)
   labels:
     io.kompose.service: bf-demo
   name: bf-demo
+  namespace: bf-demo
 spec:
   replicas: 1
   selector:
@@ -19,14 +12,6 @@ spec:
       io.kompose.service: bf-demo
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f ../docker-compose.kompose.yml
-        kompose.security-context.fsgroup: "1000"
-        kompose.service.healthcheck.liveness.tcp_port: "7999"
-        kompose.service.healthcheck.readiness.http_get_path: /health
-        kompose.service.healthcheck.readiness.http_get_port: "7999"
-        kompose.service.type: clusterip
-        kompose.version: 1.37.0 (HEAD)
       labels:
         io.kompose.service: bf-demo
     spec:
@@ -49,6 +34,11 @@ spec:
               port: 7999
           stdin: true
           tty: true
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "0.1"
+              memory: "64Mi"
       restartPolicy: Always
-      securityContext:
-        fsGroup: 1000

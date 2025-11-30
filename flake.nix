@@ -338,7 +338,6 @@
           watchman
           posting
           mitmproxy
-          duckdb
           pyrefly
           ruff
           yazi
@@ -352,6 +351,9 @@
           docker-vackup
           kompose
           kubernetes-helm
+          helm-ls
+          yaml-language-server
+          kubectl
         ]
         ++ (lib.optionals (system != "aarch64-linux") [mongodb-compass])
         ++ [wrappedTmux];

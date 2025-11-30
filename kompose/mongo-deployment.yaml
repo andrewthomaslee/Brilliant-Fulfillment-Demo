@@ -1,17 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: kompose convert -f ../docker-compose.kompose.yml
-    kompose.service.healthcheck.liveness.tcp_port: "27017"
-    kompose.service.type: clusterip
-    kompose.version: 1.37.0 (HEAD)
-    kompose.volume.size: 5Gi
-    kompose.volume.storage-class-name: longhorn
-    kompose.volume.type: persistentVolumeClaim
   labels:
     io.kompose.service: mongo
   name: mongo
+  namespace: bf-demo
 spec:
   replicas: 1
   selector:
@@ -21,14 +14,6 @@ spec:
     type: Recreate
   template:
     metadata:
-      annotations:
-        kompose.cmd: kompose convert -f ../docker-compose.kompose.yml
-        kompose.service.healthcheck.liveness.tcp_port: "27017"
-        kompose.service.type: clusterip
-        kompose.version: 1.37.0 (HEAD)
-        kompose.volume.size: 5Gi
-        kompose.volume.storage-class-name: longhorn
-        kompose.volume.type: persistentVolumeClaim
       labels:
         io.kompose.service: mongo
     spec:
@@ -41,6 +26,13 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongo-data
+          resources:
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+            requests:
+              cpu: "0.1"
+              memory: "256Mi"
       restartPolicy: Always
       volumes:
         - name: mongo-data
