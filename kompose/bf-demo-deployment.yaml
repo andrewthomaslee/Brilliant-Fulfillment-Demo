@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: bf-demo
+    io.app: bf-demo
   name: bf-demo
   namespace: bf-demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: bf-demo
+      io.app: bf-demo
   template:
     metadata:
       labels:
-        io.kompose.service: bf-demo
+        io.app: bf-demo
     spec:
       containers:
         - env:

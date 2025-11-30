@@ -2,20 +2,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: mongo
+    io.app: mongo
   name: mongo
   namespace: bf-demo
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: mongo
+      io.app: mongo
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        io.kompose.service: mongo
+        io.app: mongo
     spec:
       containers:
         - image: mongo:8.0.13

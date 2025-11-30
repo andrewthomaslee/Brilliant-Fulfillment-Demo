@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: bf-demo
+    io.app: bf-demo
   name: bf-demo
   namespace: bf-demo
 spec:
@@ -11,5 +11,5 @@ spec:
       port: 7999
       targetPort: 7999
   selector:
-    io.kompose.service: bf-demo
+    io.app: bf-demo
   type: ClusterIP
